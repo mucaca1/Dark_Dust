@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 namespace Game {
-    [CreateAssetMenu(fileName = "DarkDust", menuName = "new playgroud card", order = 0)]
+    [CreateAssetMenu(fileName = "new playgroud card", menuName = "DarkDust/Playground Card", order = 0)]
     public class PlaygroundCard : ScriptableObject {
         private PlaygroundCardType _cardType;
         private Sprite _frontImage;
