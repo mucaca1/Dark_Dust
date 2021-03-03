@@ -1,12 +1,23 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 
 namespace Game {
-    [CreateAssetMenu(fileName = "new_playgroud_card", menuName = "DarkDust/Playground Card", order = 0)]
-    public class PlaygroundCard : ScriptableObject {
-        [SerializeField] private PlaygroundCardType _cardType;
-        [SerializeField] private CardDirection _cardDirection = CardDirection.None;
-        [SerializeField] private Sprite _frontImage;
-        [SerializeField] private Sprite _backImage;
-        [SerializeField] private int _cardCount;
+    public class PlaygroundCard : NetworkBehaviour {
+
+        [SerializeField] private MeshRenderer backImage;
+        [SerializeField] private MeshRenderer frontImage;
+        
+        private bool _isRevealed = false;
+        private int _sandCount = 0;
+        private PlaygroundCardType _cardType;
+        private CardDirection _cardDirection;
+        
+        
+        public void SetData(PlaygroundCardData cardData) {
+            backImage.material.mainTexture = cardData.BackImage.texture;
+            frontImage.material.mainTexture = cardData.FrontImage.texture;
+            _cardType = cardData.CardType;
+            _cardDirection = cardData.CardDirection;
+        }
     }
 }
