@@ -113,3 +113,5 @@ fabric.properties
 
 # *.iml
 # modules.xml
+/Assets/Mirror/
+/Assets/ScriptTemplates/
