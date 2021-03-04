@@ -10,7 +10,7 @@ namespace Game.Cards.PlaygroundCards {
         private SandCard _sandCard = null;
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
-        
+
         public static event Action<PlaygroundCard> onDustNeedToCreate;
 
         public void SetData(PlaygroundCardData cardData, Vector3 startPosition) {

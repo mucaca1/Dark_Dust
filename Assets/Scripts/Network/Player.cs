@@ -16,8 +16,6 @@ namespace Network {
 
         private PlaygroundCard _position = null;
 
-        public static event Action onActionSuccessfully;
-
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
         }
@@ -38,7 +36,7 @@ namespace Network {
         [Server]
         private void SetNewPosition(PlaygroundCard card) {
             GameManager gameManager = FindObjectOfType<GameManager>();
-            if(!gameManager.IsPlayerTurn(connectionToClient.connectionId)) return;
+            if (!gameManager.IsPlayerTurn(connectionToClient.connectionId)) return;
             if (_position != null) {
                 if (!card.CanMoveToThisPart(_position)) return;
                 _position.LeavePart(connectionToClient.connectionId);
@@ -62,10 +60,11 @@ namespace Network {
         #endregion
 
         #region Client
-        
+
+        [Client]
         public void GoToPosition(PlaygroundCard card) {
-            if(!hasAuthority) return;
-            
+            if (!hasAuthority) return;
+
             CmdGoToPosition(card);
         }
 

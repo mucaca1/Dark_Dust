@@ -21,7 +21,7 @@ namespace Game {
         private Queue<int> _playerOrder = new Queue<int>();
         private static int _maxSteps = 4;
 
-        public static event Action<int> onChangeActivePlayer;
+        public event Action<int> onChangeActivePlayer;
 
         private void Start() {
             PlaygroundCard.onDustNeedToCreate += AddDustCard;
@@ -130,7 +130,7 @@ namespace Game {
         public void DoAction() {
             --_stepsRemaning;
             if (_stepsRemaning != 0) return;
-            Debug.Log("End your turn");
+            Debug.Log($"Player {_activePlayer}: End his turn.");
             _playerOrder.Enqueue(_activePlayer);
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
