@@ -8,8 +8,8 @@ namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private Renderer _renderer = null;
 
-        [SyncVar(hook = nameof(HandleChangePlayer))]
-        private bool _yourTurn = false;
+        [SyncVar(hook = nameof(HandleChangePlayer))] [SerializeField]
+        private bool yourTurn = false;
 
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
@@ -36,12 +36,12 @@ namespace Network {
 
         [Server]
         public void EndTurn() {
-            _yourTurn = false;
+            yourTurn = false;
         }
 
         [Server]
         public void StartTurn() {
-            _yourTurn = true;
+            yourTurn = true;
         }
 
         [Server]
