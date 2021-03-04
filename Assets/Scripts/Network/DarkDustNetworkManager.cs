@@ -17,6 +17,9 @@ namespace Network {
                 Random.Range(0, 1f),
                 Random.Range(0, 1f)
             );
+
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            gameManager.RegisterPlayerToQueue(conn.connectionId);
         }
     }
 }

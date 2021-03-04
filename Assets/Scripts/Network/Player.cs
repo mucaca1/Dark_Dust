@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Network {
     public class Player : NetworkBehaviour {
-
         [SerializeField] private Renderer _renderer = null;
 
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
@@ -16,6 +15,8 @@ namespace Network {
         public Color PlayerColor { get; set; } = Color.black;
 
         private PlaygroundCard _position = null;
+
+        public static event Action onActionSuccessfully;
 
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
@@ -31,19 +32,21 @@ namespace Network {
         private void SetStartPosition() {
             GameManager manager = FindObjectOfType<GameManager>();
             _position = manager.GetStartCard();
-            transform.position = _position.GetNextPlayerPosition();
+            transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
         }
 
         [Server]
         private void SetNewPosition(PlaygroundCard card) {
-            if (!hasAuthority) return;
-            
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if(!gameManager.IsPlayerTurn(connectionToClient.connectionId)) return;
             if (_position != null) {
                 if (!card.CanMoveToThisPart(_position)) return;
-                _position.LeavePart();
+                _position.LeavePart(connectionToClient.connectionId);
             }
+
             _position = card;
-            transform.position = _position.GetNextPlayerPosition();
+            transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
+            gameManager.DoAction();
         }
 
         [Command]
@@ -60,7 +63,11 @@ namespace Network {
 
         #region Client
         
-        
+        public void GoToPosition(PlaygroundCard card) {
+            if(!hasAuthority) return;
+            
+            CmdGoToPosition(card);
+        }
 
         #endregion
     }

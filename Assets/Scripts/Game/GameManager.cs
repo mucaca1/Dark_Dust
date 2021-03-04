@@ -9,7 +9,8 @@ using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
-        [SyncVar][SerializeField] private int _activePlayer = -1;
+        [SyncVar] private int _activePlayer = -1;
+        [SyncVar] private int _stepsRemaning = 4;
         [SerializeField] private Transform playGroundStartTransform = null;
 
         [SerializeField] private GameObject playgroundCardPrefab = null;
@@ -18,11 +19,12 @@ namespace Game {
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<int> _playerOrder = new Queue<int>();
-        
-        public static event Action<int> OnChangeActivePlayer;
+        private static int _maxSteps = 4;
+
+        public static event Action<int> onChangeActivePlayer;
 
         private void Start() {
-            PlaygroundCard.OnDustNeedToCreate += AddDustCard;
+            PlaygroundCard.onDustNeedToCreate += AddDustCard;
             if (isServer) {
                 _playgroundCardDatas = Resources.LoadAll<PlaygroundCardData>("");
 
@@ -35,15 +37,11 @@ namespace Game {
 
             if (isClient) {
                 LoadPlayground();
-                RegisterPlayerToQueue(NetworkClient.connection.connectionId);
-                if (_activePlayer == -1) {
-                    _activePlayer = _playerOrder.Dequeue();
-                }
             }
         }
 
         private void OnDestroy() {
-            PlaygroundCard.OnDustNeedToCreate -= AddDustCard;
+            PlaygroundCard.onDustNeedToCreate -= AddDustCard;
         }
 
         #region Server
@@ -121,8 +119,27 @@ namespace Game {
         }
 
         [Server]
-        private void RegisterPlayerToQueue(int playerId) {
+        public void RegisterPlayerToQueue(int playerId) {
             _playerOrder.Enqueue(playerId);
+            if (_activePlayer == -1) {
+                _activePlayer = _playerOrder.Dequeue();
+            }
+        }
+
+        [Server]
+        public void DoAction() {
+            --_stepsRemaning;
+            if (_stepsRemaning != 0) return;
+            Debug.Log("End your turn");
+            _playerOrder.Enqueue(_activePlayer);
+            _activePlayer = _playerOrder.Dequeue();
+            _stepsRemaning = _maxSteps;
+            onChangeActivePlayer?.Invoke(_activePlayer);
+        }
+        
+        [Server]
+        public bool IsPlayerTurn(int connectionId) {
+            return connectionId == _activePlayer;
         }
 
         #endregion

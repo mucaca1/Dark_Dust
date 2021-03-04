@@ -15,7 +15,15 @@ namespace Game.Cards {
         protected float playgroundCardOffsetY = 0f;
         private float playgroundCardSize = 1f;
         private float playgroundCardOffset = .1f;
-        private int _stayingPositionPlayer = 0;
+
+        private int[] _stayingPositionPlayer = new int[5];
+
+        [ServerCallback]
+        private void Awake() {
+            for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
+                _stayingPositionPlayer[i] = -1;
+            }
+        }
 
         public void UpdatePosition() {
             Vector3 pos = new Vector3(
@@ -62,15 +70,6 @@ namespace Game.Cards {
             _isRevealed = true;
         }
 
-        public Vector3 GetNextPlayerPosition() {
-            if (_stayingPositionPlayer + 1 == positionToStay.Length) return new Vector3(0, 0, 0);
-            return positionToStay[_stayingPositionPlayer++].position;
-        }
-
-        public void LeavePart() {
-            --_stayingPositionPlayer;
-        }
-
         #region Server
 
         [Server]
@@ -80,6 +79,25 @@ namespace Game.Cards {
             if (Mathf.Abs(from.indexPosition.x - indexPosition.x) > 1 ||
                 Mathf.Abs(from.indexPosition.y - indexPosition.y) > 1) return false;
             return true;
+        }
+        
+        [Server]
+        public Vector3 GetNextPlayerPosition(int playerId) {
+            for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
+                if (_stayingPositionPlayer[i] == -1) {
+                    _stayingPositionPlayer[i] = playerId;
+                    return positionToStay[i].position;
+                }
+            }
+            return Vector3.zero;
+        }
+
+        [Server]
+        public void LeavePart(int playerId) {
+            for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
+                if (_stayingPositionPlayer[i] == playerId)
+                    _stayingPositionPlayer[i] = -1;
+            }
         }
 
         #endregion

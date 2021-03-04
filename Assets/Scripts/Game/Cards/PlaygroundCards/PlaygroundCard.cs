@@ -11,7 +11,7 @@ namespace Game.Cards.PlaygroundCards {
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
         
-        public static event Action<PlaygroundCard> OnDustNeedToCreate;
+        public static event Action<PlaygroundCard> onDustNeedToCreate;
 
         public void SetData(PlaygroundCardData cardData, Vector3 startPosition) {
             playgroundStartPosition = startPosition;
@@ -35,7 +35,7 @@ namespace Game.Cards.PlaygroundCards {
 
         public void AddSand() {
             if (_sandCard == null)
-                OnDustNeedToCreate?.Invoke(this);
+                onDustNeedToCreate?.Invoke(this);
             else
                 _sandCard.AddDust();
         }
