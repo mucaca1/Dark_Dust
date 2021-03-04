@@ -1,11 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Game;
 using Mirror;
+using NUnit.Framework;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Network {
     public class DarkDustNetworkManager : NetworkManager {
+
+        private List<Player> _players = new List<Player>();
+
         public override void OnServerAddPlayer(NetworkConnection conn) {
             base.OnServerAddPlayer(conn);
 
@@ -17,9 +22,11 @@ namespace Network {
                 Random.Range(0, 1f),
                 Random.Range(0, 1f)
             );
+            
+            _players.Add(player);
 
             GameManager gameManager = FindObjectOfType<GameManager>();
-            gameManager.RegisterPlayerToQueue(conn.connectionId);
+            gameManager.RegisterPlayerToQueue(player);
         }
     }
 }

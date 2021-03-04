@@ -2,12 +2,12 @@ using System;
 using Game;
 using Game.Cards.PlaygroundCards;
 using Mirror;
-using Telepathy;
 using UnityEngine;
 
 namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private Renderer _renderer = null;
+        [SyncVar(hook = nameof(HandleChangePlayer))][SerializeField] private bool yourTurn = false;
 
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
@@ -16,6 +16,8 @@ namespace Network {
 
         private PlaygroundCard _position = null;
 
+        public event Action<bool> onChangeActivePlayer;
+        
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
         }
@@ -24,7 +26,21 @@ namespace Network {
             CmdSetStartPosition();
         }
 
+        private void HandleChangePlayer(bool oldValue, bool newValue) {
+            onChangeActivePlayer?.Invoke(newValue);
+        }
+
         #region Server
+        
+        [Server]
+        public void EndTurn() {
+            yourTurn = false;
+        }
+
+        [Server]
+        public void StartTurn() {
+            yourTurn = true;
+        }
 
         [Server]
         private void SetStartPosition() {
@@ -36,7 +52,7 @@ namespace Network {
         [Server]
         private void SetNewPosition(PlaygroundCard card) {
             GameManager gameManager = FindObjectOfType<GameManager>();
-            if (!gameManager.IsPlayerTurn(connectionToClient.connectionId)) return;
+            if (!gameManager.IsPlayerTurn(this)) return;
             if (_position != null) {
                 if (!card.CanMoveToThisPart(_position)) return;
                 _position.LeavePart(connectionToClient.connectionId);

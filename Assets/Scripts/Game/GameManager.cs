@@ -9,7 +9,8 @@ using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
-        [SyncVar] private int _activePlayer = -1;
+        private Player _activePlayer = null;
+
         [SyncVar] private int _stepsRemaning = 4;
         [SerializeField] private Transform playGroundStartTransform = null;
 
@@ -18,10 +19,8 @@ namespace Game {
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCardData[] _playgroundCardDatas;
-        private Queue<int> _playerOrder = new Queue<int>();
+        private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
-
-        public event Action<int> onChangeActivePlayer;
 
         private void Start() {
             PlaygroundCard.onDustNeedToCreate += AddDustCard;
@@ -119,10 +118,11 @@ namespace Game {
         }
 
         [Server]
-        public void RegisterPlayerToQueue(int playerId) {
-            _playerOrder.Enqueue(playerId);
-            if (_activePlayer == -1) {
+        public void RegisterPlayerToQueue(Player player) {
+            _playerOrder.Enqueue(player);
+            if (_activePlayer == null) {
                 _activePlayer = _playerOrder.Dequeue();
+                _activePlayer.StartTurn();
             }
         }
 
@@ -131,15 +131,16 @@ namespace Game {
             --_stepsRemaning;
             if (_stepsRemaning != 0) return;
             Debug.Log($"Player {_activePlayer}: End his turn.");
+            _activePlayer.EndTurn();
             _playerOrder.Enqueue(_activePlayer);
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
-            onChangeActivePlayer?.Invoke(_activePlayer);
+            _activePlayer.StartTurn();
         }
-        
+
         [Server]
-        public bool IsPlayerTurn(int connectionId) {
-            return connectionId == _activePlayer;
+        public bool IsPlayerTurn(Player player) {
+            return player == _activePlayer;
         }
 
         #endregion
