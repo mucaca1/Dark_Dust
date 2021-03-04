@@ -67,8 +67,21 @@ namespace Game.Cards {
             return positionToStay[_stayingPositionPlayer++].position;
         }
 
-        public void leavePart() {
+        public void LeavePart() {
             --_stayingPositionPlayer;
         }
+
+        #region Server
+
+        [Server]
+        public bool CanMoveToThisPart(PlaygroundPart from) {
+            if (from.indexPosition.x != indexPosition.x && from.indexPosition.y != indexPosition.y) return false;
+
+            if (Mathf.Abs(from.indexPosition.x - indexPosition.x) > 1 ||
+                Mathf.Abs(from.indexPosition.y - indexPosition.y) > 1) return false;
+            return true;
+        }
+
+        #endregion
     }
 }

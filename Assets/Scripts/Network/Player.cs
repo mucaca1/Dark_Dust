@@ -9,10 +9,11 @@ namespace Network {
     public class Player : NetworkBehaviour {
 
         [SerializeField] private Renderer _renderer = null;
-        
+
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
-        [field: SyncVar(hook = nameof(UpdatePlayerColor))] public Color PlayerColor { get; set; } = Color.black;
+        [field: SyncVar(hook = nameof(UpdatePlayerColor))]
+        public Color PlayerColor { get; set; } = Color.black;
 
         private PlaygroundCard _position = null;
 
@@ -27,15 +28,32 @@ namespace Network {
         #region Server
 
         [Server]
-        public void SetStartPosition() {
+        private void SetStartPosition() {
             GameManager manager = FindObjectOfType<GameManager>();
             _position = manager.GetStartCard();
+            transform.position = _position.GetNextPlayerPosition();
+        }
+
+        [Server]
+        private void SetNewPosition(PlaygroundCard card) {
+            if (!hasAuthority) return;
+            
+            if (_position != null) {
+                if (!card.CanMoveToThisPart(_position)) return;
+                _position.LeavePart();
+            }
+            _position = card;
             transform.position = _position.GetNextPlayerPosition();
         }
 
         [Command]
         private void CmdSetStartPosition() {
             SetStartPosition();
+        }
+
+        [Command]
+        public void CmdGoToPosition(PlaygroundCard card) {
+            SetNewPosition(card);
         }
 
         #endregion
