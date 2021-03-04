@@ -15,7 +15,6 @@ namespace Game {
         [SerializeField] private Transform playGroundStartTransform = null;
 
         [SerializeField] private GameObject playgroundCardPrefab = null;
-        [SerializeField] private GameObject dustCardPrefab;
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCardData[] _playgroundCardDatas;
@@ -23,7 +22,6 @@ namespace Game {
         private static int _maxSteps = 4;
 
         private void Start() {
-            PlaygroundCard.onDustNeedToCreate += AddDustCard;
             if (isServer) {
                 _playgroundCardDatas = Resources.LoadAll<PlaygroundCardData>("");
 
@@ -39,8 +37,8 @@ namespace Game {
             }
         }
 
-        private void OnDestroy() {
-            PlaygroundCard.onDustNeedToCreate -= AddDustCard;
+        public Vector3 GetPlaygroundStartPosition() {
+            return playGroundStartTransform.position;
         }
 
         #region Server
@@ -105,19 +103,6 @@ namespace Game {
         }
 
         [Server]
-        private void AddDustCard(PlaygroundCard card) {
-            GameObject dust = Instantiate(dustCardPrefab, Vector3.zero,
-                Quaternion.identity);
-
-            SandCard sandCard = dust.GetComponent<SandCard>();
-            sandCard.SetStartPosition(playGroundStartTransform.position);
-            sandCard.SetIndexPosition(card.GetIndexPosition());
-            sandCard.UpdatePosition();
-
-            NetworkServer.Spawn(dust);
-        }
-
-        [Server]
         public void RegisterPlayerToQueue(Player player) {
             _playerOrder.Enqueue(player);
             if (_activePlayer == null) {
@@ -130,7 +115,7 @@ namespace Game {
         public void DoAction() {
             --_stepsRemaning;
             if (_stepsRemaning != 0) return;
-            Debug.Log($"Player {_activePlayer}: End his turn.");
+            Debug.Log($"Player {_activePlayer.PlayerName}: End his turn.");
             _activePlayer.EndTurn();
             _playerOrder.Enqueue(_activePlayer);
             _activePlayer = _playerOrder.Dequeue();

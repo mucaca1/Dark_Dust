@@ -29,6 +29,13 @@ namespace Network {
                     case PlayerAction.WALK:
                         player.GoToPosition(card);
                         break;
+                    case PlayerAction.EXCAVATE:
+                        break;
+                    case PlayerAction.REMOVE_SAND:
+                        player.RemoveSand(card);
+                        break;
+                    case PlayerAction.PICK_UP_A_PART:
+                        break;
                 }
                 
             }

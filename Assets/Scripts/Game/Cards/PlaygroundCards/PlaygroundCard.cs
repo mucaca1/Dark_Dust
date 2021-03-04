@@ -7,11 +7,13 @@ namespace Game.Cards.PlaygroundCards {
         [SerializeField] private MeshRenderer backImage;
         [SerializeField] private MeshRenderer frontImage;
 
+        [SerializeField] private GameObject dustCardPrefab;
+
         private SandCard _sandCard = null;
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
 
-        public static event Action<PlaygroundCard> onDustNeedToCreate;
+        public static event Action onDustRemove;
 
         public void SetData(PlaygroundCardData cardData, Vector3 startPosition) {
             playgroundStartPosition = startPosition;
@@ -33,18 +35,53 @@ namespace Game.Cards.PlaygroundCards {
             _cardDirection = cardData._cardDirection;
         }
 
+        public PlaygroundCardType CardType => _cardType;
+
+        #region Server
+        
+        [Server]
         public void AddSand() {
             if (_sandCard == null)
-                onDustNeedToCreate?.Invoke(this);
+                CreateSandCard(this);
             else
                 _sandCard.AddDust();
         }
 
+        [Server]
         public void RemoveSand(int count = 1) {
             if (_sandCard == null) return;
-            _sandCard.RemoveDust();
+            _sandCard.RemoveDust(count);
+        }
+        
+        [Server]
+        private void CreateSandCard(PlaygroundCard card) {
+            GameManager manager = FindObjectOfType<GameManager>();
+            GameObject dust = Instantiate(dustCardPrefab, Vector3.zero,
+                Quaternion.identity);
+
+            SandCard sandCard = dust.GetComponent<SandCard>();
+            _sandCard = sandCard;
+            sandCard.onDestroy += DestroySand;
+
+            sandCard.SetStartPosition(manager.GetPlaygroundStartPosition());
+            sandCard.SetIndexPosition(card.GetIndexPosition());
+            sandCard.UpdatePosition();
+
+            NetworkServer.Spawn(dust);
         }
 
-        public PlaygroundCardType CardType => _cardType;
+        [Server]
+        private void DestroySand(SandCard card) {
+            _sandCard.onDestroy -= DestroySand;
+            _sandCard = null;
+            NetworkServer.Destroy(card.gameObject);
+        }
+        
+        [Server]
+        public bool IsDustNull() {
+            return _sandCard == null;
+        }
+
+        #endregion
     }
 }

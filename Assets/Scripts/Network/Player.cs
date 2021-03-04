@@ -64,6 +64,19 @@ namespace Network {
             transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
             gameManager.DoAction();
         }
+        
+        [Server]
+        private void ServerRemoveSand(PlaygroundCard card) {
+            if (card.IsDustNull()) return;
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (!gameManager.IsPlayerTurn(this)) return;
+            if (_position == null) return;
+            
+            if (!card.CanMoveToThisPart(_position)) return;
+            
+            card.RemoveSand(1);
+            gameManager.DoAction();
+        }
 
         [Command]
         private void CmdSetStartPosition() {
@@ -73,6 +86,11 @@ namespace Network {
         [Command]
         public void CmdGoToPosition(PlaygroundCard card) {
             SetNewPosition(card);
+        }
+        
+        [Command]
+        private void CmdRemoveSand(PlaygroundCard card) {
+            ServerRemoveSand(card);
         }
 
         #endregion
@@ -84,6 +102,13 @@ namespace Network {
             if (!hasAuthority) return;
 
             CmdGoToPosition(card);
+        }
+        
+        [Client]
+        public void RemoveSand(PlaygroundCard card) {
+            if (!hasAuthority) return;
+
+            CmdRemoveSand(card);
         }
 
         #endregion

@@ -326,6 +326,7 @@ MonoBehaviour:
   - {fileID: 7492106258926823740}
   backImage: {fileID: 8326528620715048301}
   frontImage: {fileID: 8326528620921054666}
+  dustCardPrefab: {fileID: 2238259175069184360, guid: cc788da18a01fd248b6c9507079341d5, type: 3}
 --- !u!114 &1946338821042121272
 MonoBehaviour:
   m_ObjectHideFlags: 0
