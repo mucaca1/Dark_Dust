@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
+        [SyncVar][SerializeField] private int _activePlayer = -1;
         [SerializeField] private Transform playGroundStartTransform = null;
 
         [SerializeField] private GameObject playgroundCardPrefab = null;
@@ -17,7 +18,7 @@ namespace Game {
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<int> _playerOrder = new Queue<int>();
-
+        
         public static event Action<int> OnChangeActivePlayer;
 
         private void Start() {
@@ -34,6 +35,10 @@ namespace Game {
 
             if (isClient) {
                 LoadPlayground();
+                RegisterPlayerToQueue(NetworkClient.connection.connectionId);
+                if (_activePlayer == -1) {
+                    _activePlayer = _playerOrder.Dequeue();
+                }
             }
         }
 
