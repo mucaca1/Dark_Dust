@@ -1,4 +1,5 @@
 ﻿using System;
+using Game;
 using Game.Cards.PlaygroundCards;
 using Mirror;
 using UnityEngine;
@@ -8,6 +9,8 @@ namespace Network {
     public class PlayerController : MonoBehaviour {
         [SerializeField] private LayerMask _layerMask = new LayerMask();
 
+        private PlayerAction _action = PlayerAction.WALK;
+        
         private Camera _mainCamera;
 
         private void Start() {
@@ -21,8 +24,18 @@ namespace Network {
             if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _layerMask)) return;
             if (hit.collider.TryGetComponent<PlaygroundCard>(out PlaygroundCard card)) {
                 Player player = GetComponent<Player>();
-                player.GoToPosition(card);
+
+                switch (_action) {
+                    case PlayerAction.WALK:
+                        player.GoToPosition(card);
+                        break;
+                }
+                
             }
+        }
+
+        public void SetPlayerAction(PlayerAction action) {
+            _action = action;
         }
     }
 }
