@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Game {
+namespace Game.Cards.PlaygroundCards {
     [CreateAssetMenu(fileName = "new_playgroud_card", menuName = "DarkDust/Playground Card", order = 0)]
     public class PlaygroundCardData : ScriptableObject {
         [SerializeField] private PlaygroundCardType _cardType;

@@ -1,4 +1,4 @@
-﻿namespace Game {
+﻿namespace Game.Cards.PlaygroundCards {
     public enum PlaygroundCardType {
         Cave,
         Compass,
@@ -8,6 +8,8 @@
         Start,
         Exit,
         Water,
-        FakeWater
+        FakeWater,
+        Components,
+        Tornado
     }
 }
