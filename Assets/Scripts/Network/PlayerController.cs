@@ -20,8 +20,8 @@ namespace Network {
             Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _layerMask)) return;
             if (hit.collider.TryGetComponent<PlaygroundCard>(out PlaygroundCard card)) {
-                Player player = NetworkClient.connection.identity.GetComponent<Player>();
-                player.CmdGoToPosition(card);
+                Player player = GetComponent<Player>();
+                player.GoToPosition(card);
             }
         }
     }
