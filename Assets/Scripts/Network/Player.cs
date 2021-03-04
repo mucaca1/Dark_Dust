@@ -18,7 +18,7 @@ namespace Network {
 
         private PlaygroundCard _position = null;
 
-        public event Action<bool> onChangeActivePlayer;
+        public event Action<bool, string> onChangeActivePlayer;
 
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
@@ -29,7 +29,7 @@ namespace Network {
         }
 
         private void HandleChangePlayer(bool oldValue, bool newValue) {
-            onChangeActivePlayer?.Invoke(newValue);
+            onChangeActivePlayer?.Invoke(newValue, PlayerName);
         }
 
         #region Server
