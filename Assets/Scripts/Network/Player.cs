@@ -7,7 +7,9 @@ using UnityEngine;
 namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private Renderer _renderer = null;
-        [SyncVar(hook = nameof(HandleChangePlayer))][SerializeField] private bool yourTurn = false;
+
+        [SyncVar(hook = nameof(HandleChangePlayer))]
+        private bool _yourTurn = false;
 
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
@@ -17,7 +19,7 @@ namespace Network {
         private PlaygroundCard _position = null;
 
         public event Action<bool> onChangeActivePlayer;
-        
+
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
         }
@@ -31,15 +33,15 @@ namespace Network {
         }
 
         #region Server
-        
+
         [Server]
         public void EndTurn() {
-            yourTurn = false;
+            _yourTurn = false;
         }
 
         [Server]
         public void StartTurn() {
-            yourTurn = true;
+            _yourTurn = true;
         }
 
         [Server]
