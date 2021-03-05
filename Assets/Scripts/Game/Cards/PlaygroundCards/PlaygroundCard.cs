@@ -1,5 +1,6 @@
 ﻿using System;
 using Mirror;
+using Network;
 using UnityEngine;
 
 namespace Game.Cards.PlaygroundCards {
@@ -14,6 +15,9 @@ namespace Game.Cards.PlaygroundCards {
         private CardDirection _cardDirection;
 
         public static event Action onDustRemove;
+        
+        public PlaygroundCardType CardType => _cardType;
+        public CardDirection CardDirection => _cardDirection;
 
         public void SetData(PlaygroundCardData cardData, Vector3 startPosition) {
             playgroundStartPosition = startPosition;
@@ -35,10 +39,8 @@ namespace Game.Cards.PlaygroundCards {
             _cardDirection = cardData._cardDirection;
         }
 
-        public PlaygroundCardType CardType => _cardType;
-
         #region Server
-        
+
         [Server]
         public bool CanMoveToThisPart(PlaygroundCard from) {
             if (_sandCard != null) {

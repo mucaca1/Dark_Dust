@@ -1,6 +1,7 @@
 ﻿using System;
 using Game.Cards.PlaygroundCards;
 using Mirror;
+using Network;
 using UnityEngine;
 
 namespace Game.Cards {
@@ -73,6 +74,17 @@ namespace Game.Cards {
         }
 
         #region Server
+        
+        [Server]
+        public bool PlayerStayHere(int playerId) {
+            for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
+                if (_stayingPositionPlayer[i] == playerId) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         [Server]
         public Vector3 GetNextPlayerPosition(int playerId) {

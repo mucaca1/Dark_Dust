@@ -67,6 +67,7 @@ namespace Network {
         
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
             if (card.IsDustNull()) return;
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
@@ -80,17 +81,32 @@ namespace Network {
         
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!card.IsDustNull()) return;
+            if (card.IsRevealed) return;
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
             if (_position == null) return;
             
-            if (!card.CanMoveToThisPart(_position)) return;
+            if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
             
             card.ExcavateCard();
             card.UpdateRotation();
             
             gameManager.DoAction();
+        }
+        
+        [Server]
+        private void ServerPickUpAPart(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
+            if (!card.IsDustNull()) return;
+            if (!card.IsRevealed) return;
+            
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (!gameManager.IsPlayerTurn(this)) return;
+            if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
+            if (gameManager.TryPickUpAPart(card))
+                gameManager.DoAction();
         }
 
         [Command]
@@ -111,6 +127,11 @@ namespace Network {
         [Command]
         private void CmdExcavate(PlaygroundCard card) {
             ServerExcavate(card);
+        }
+
+        [Command]
+        private void CmdPickUpAPart(PlaygroundCard card) {
+            ServerPickUpAPart(card);
         }
 
         #endregion
@@ -138,6 +159,13 @@ namespace Network {
             if (card.CardType == PlaygroundCardType.Tornado) return;
             if (card.IsRevealed) return;
             CmdExcavate(card);
+        }
+        
+        [Client]
+        public void PickUpAPart(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
+            if (!card.IsRevealed) return;
+            CmdPickUpAPart(card);
         }
 
         #endregion

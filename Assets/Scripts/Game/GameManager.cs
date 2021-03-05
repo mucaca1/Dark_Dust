@@ -12,6 +12,7 @@ namespace Game {
         private Player _activePlayer = null;
 
         [SyncVar] private int _stepsRemaning = 4;
+        [SyncVar] private int _takedItems = 0;
         [SerializeField] private Transform playGroundStartTransform = null;
 
         [SerializeField] private GameObject playgroundCardPrefab = null;
@@ -39,6 +40,14 @@ namespace Game {
 
         public Vector3 GetPlaygroundStartPosition() {
             return playGroundStartTransform.position;
+        }
+
+        private bool IsItemTaked(int index) {
+            return (_takedItems & (1 << index)) != 0;
+        }
+
+        private void TakeItem(int index) {
+            _takedItems |= 1 << index;
         }
 
         #region Server
@@ -126,6 +135,42 @@ namespace Game {
         [Server]
         public bool IsPlayerTurn(Player player) {
             return player == _activePlayer;
+        }
+
+        [Server]
+        public bool TryPickUpAPart(PlaygroundCard destinationCard) {
+            PlaygroundCardType[] type = new[] {
+                PlaygroundCardType.Compass, PlaygroundCardType.Engine, PlaygroundCardType.Helm,
+                PlaygroundCardType.Propeller
+            };
+
+            foreach (PlaygroundCardType itemType in type) {
+                PlaygroundCard horizontalCard = null;
+                PlaygroundCard verticalCard = null;
+                foreach (PlaygroundCard card in _playgroundCards) {
+                    if (!card.IsRevealed) continue;
+                    if (card.CardType != itemType) continue;
+                    if (card.CardDirection == CardDirection.Horizontal) {
+                        horizontalCard = card;
+                    }
+                    else if (card.CardDirection == CardDirection.Vertical) {
+                        verticalCard = card;
+                    }
+
+                    if (horizontalCard != null && verticalCard != null) break;
+                }
+
+                if (horizontalCard == null || verticalCard == null) continue;
+                if (horizontalCard.GetIndexPosition().y == destinationCard.GetIndexPosition().y &&
+                    verticalCard.GetIndexPosition().x == destinationCard.GetIndexPosition().x) {
+                    if (!IsItemTaked(itemType.GetHashCode())) {
+                        TakeItem(itemType.GetHashCode());
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

@@ -36,6 +36,7 @@ namespace Network {
                         player.RemoveSand(card);
                         break;
                     case PlayerAction.PICK_UP_A_PART:
+                        player.PickUpAPart(card);
                         break;
                 }
                 
