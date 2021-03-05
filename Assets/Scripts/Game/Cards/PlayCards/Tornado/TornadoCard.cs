@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 
 namespace Game.Cards.PlayCards.Tornado {
-    public class TornadoCard {
-        [SerializeField] private Sprite backSite = null;
-        [SerializeField] private Sprite frontSite = null;
+    public abstract class TornadoCard : NetworkBehaviour {
         
-        private CardDirection _direction;
-        private int _steps = 0;
+        [SerializeField] protected Sprite backSite = null;
+
+        public abstract void DoAction();
     }
 }

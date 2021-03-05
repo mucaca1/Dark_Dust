@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Cards.PlayCards.Tornado;
 using Game.Cards.PlaygroundCards;
 using Mirror;
 using Network;
@@ -9,6 +10,12 @@ using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
+        [Serializable]
+        private class TornadoCardSet {
+            public int count = 0;
+            public TornadoCard cardPrefab = null;
+        }
+
         private Player _activePlayer = null;
 
         [SyncVar] private int _stepsRemaning = 4;
@@ -16,12 +23,17 @@ namespace Game {
         [SerializeField] private Transform playGroundStartTransform = null;
 
         [SerializeField] private GameObject playgroundCardPrefab = null;
+        [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
+
+        private List<TornadoCard> _tornadoCards = new List<TornadoCard>();
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCard _tornado = null;
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
+
+        private int _stromTickMark = 2;
 
         private void Start() {
             if (isServer) {
@@ -112,6 +124,32 @@ namespace Game {
                     }
                 }
             }
+
+            GenerateStormDeck();
+        }
+
+        [Server]
+        private void GenerateStormDeck() {
+            int moveDirection = 0;
+            int moveCounter = 0;
+            foreach (TornadoCardSet cardSet in _tornadoCardsPrefab) {
+                while (0 != cardSet.count--) {
+                    TornadoMove tornadoMove = cardSet.cardPrefab as TornadoMove;
+                    if (tornadoMove != null) {
+                        tornadoMove.Direction = (TornadoDirection) (moveDirection % 4);
+                        if (moveDirection++ % 4 == 0)
+                            ++moveCounter;
+                        tornadoMove.Steps = moveCounter;
+                    }
+
+                    _tornadoCards.Add(cardSet.cardPrefab);
+                }
+            }
+
+            // Sort cards.
+            _tornadoCards = _tornadoCards.OrderBy(x => Guid.NewGuid()).ToList();
+            
+            Debug.Log("Tornado cards has been generated and sorted.");
         }
 
         [Server]

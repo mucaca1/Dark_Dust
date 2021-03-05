@@ -806,6 +806,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3124570799475064336, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124570799475064336, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124570799475064336, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3124570799475064336, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3982899619549336973, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
       propertyPath: m_Name
       value: GameScreenView
