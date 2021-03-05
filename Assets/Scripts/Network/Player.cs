@@ -100,7 +100,6 @@ namespace Network {
 
         [Command]
         public void CmdGoToPosition(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
             SetNewPosition(card);
         }
         
@@ -120,6 +119,7 @@ namespace Network {
 
         [Client]
         public void GoToPosition(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!hasAuthority) return;
 
             CmdGoToPosition(card);
@@ -127,6 +127,7 @@ namespace Network {
         
         [Client]
         public void RemoveSand(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!hasAuthority) return;
 
             CmdRemoveSand(card);
