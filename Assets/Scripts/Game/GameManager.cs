@@ -149,7 +149,7 @@ namespace Game {
                     TornadoMove tornadoMove = cardSet.cardPrefab as TornadoMove;
                     if (tornadoMove != null) {
                         tornadoMove.Direction = (TornadoDirection) (moveDirection % 4);
-                        if (moveDirection++ % 4 == 0)
+                        if (moveDirection++ % 8 == 0)
                             ++moveCounter;
                         tornadoMove.Steps = moveCounter;
                     }
@@ -192,8 +192,13 @@ namespace Game {
             _activePlayer.StartTurn();
         }
 
+        [Server]
         private void DesertTurn() {
             Debug.Log("Desert is in command");
+            TornadoCard tornadoCard = _tornadoCards.Dequeue();
+            GameObject card = Instantiate(tornadoCard.gameObject, Vector3.zero, Quaternion.identity);
+            card.GetComponent<TornadoCard>().DoAction();
+            Destroy(card);
         }
 
         [Server]
