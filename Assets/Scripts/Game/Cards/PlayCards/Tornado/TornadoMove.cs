@@ -17,7 +17,7 @@ namespace Game.Cards.PlayCards.Tornado {
         }
 
         public override void DoAction() {
-            throw new System.NotImplementedException();
+            Debug.Log($"Tornado is moving to dte {_direction} and for {_steps} steps.");
         }
     }
 }

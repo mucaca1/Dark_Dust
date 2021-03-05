@@ -188,7 +188,14 @@ namespace Game {
             _playerOrder.Enqueue(_activePlayer);
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
+
+            DesertTurn();
+            
             _activePlayer.StartTurn();
+        }
+
+        private void DesertTurn() {
+            Debug.Log("Desert is in command");
         }
 
         [Server]
