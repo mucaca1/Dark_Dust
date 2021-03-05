@@ -25,7 +25,7 @@ namespace Game {
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
 
-        private List<TornadoCard> _tornadoCards = new List<TornadoCard>();
+        private Queue<TornadoCard> _tornadoCards = new Queue<TornadoCard>();
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCard _tornado = null;
@@ -145,6 +145,7 @@ namespace Game {
         private void GenerateStormDeck() {
             int moveDirection = 0;
             int moveCounter = 0;
+            List<TornadoCard> generatedSet = new List<TornadoCard>();
             foreach (TornadoCardSet cardSet in _tornadoCardsPrefab) {
                 while (0 != cardSet.count--) {
                     TornadoMove tornadoMove = cardSet.cardPrefab as TornadoMove;
@@ -155,13 +156,17 @@ namespace Game {
                         tornadoMove.Steps = moveCounter;
                     }
 
-                    _tornadoCards.Add(cardSet.cardPrefab);
+                    generatedSet.Add(cardSet.cardPrefab);
                 }
             }
 
             // Sort cards.
-            _tornadoCards = _tornadoCards.OrderBy(x => Guid.NewGuid()).ToList();
+            generatedSet = generatedSet.OrderBy(x => Guid.NewGuid()).ToList();
 
+            foreach (TornadoCard card in generatedSet) {
+                _tornadoCards.Enqueue(card);
+            }
+            
             Debug.Log("Tornado cards has been generated and sorted.");
         }
 
