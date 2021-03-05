@@ -100,6 +100,7 @@ namespace Network {
 
         [Command]
         public void CmdGoToPosition(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
             SetNewPosition(card);
         }
         
