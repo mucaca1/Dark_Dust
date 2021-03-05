@@ -18,6 +18,7 @@ namespace Game {
         [SerializeField] private GameObject playgroundCardPrefab = null;
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
+        private PlaygroundCard _tornado = null;
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
@@ -62,7 +63,10 @@ namespace Game {
                     PlaygroundCard newCardData = card.GetComponent<PlaygroundCard>();
                     newCardData.name = cardData.name;
                     newCardData.SetData(cardData, playGroundStartTransform.position);
-                    _playgroundCards.Add(newCardData);
+                    if (newCardData.CardType != PlaygroundCardType.Tornado)
+                        _playgroundCards.Add(newCardData);
+                    else
+                        _tornado = newCardData;
                     NetworkServer.Spawn(card);
                 }
             }
@@ -71,13 +75,12 @@ namespace Game {
             _playgroundCards = _playgroundCards.OrderBy(x => Guid.NewGuid()).ToList();
 
             Stack<PlaygroundCard> stack = new Stack<PlaygroundCard>();
-            PlaygroundCard tornado = null;
             foreach (PlaygroundCard playgroundCard in _playgroundCards) {
                 if (playgroundCard.CardType != PlaygroundCardType.Tornado) {
                     stack.Push(playgroundCard);
                 }
                 else {
-                    tornado = playgroundCard; // Extract tornado card
+                    _tornado = playgroundCard; // Extract tornado card
                 }
             }
 
@@ -86,10 +89,10 @@ namespace Game {
                 for (int j = 0; j < 5; j++) {
                     // Set tornado in the middle.
                     if (i == 2 && j == 2) {
-                        tornado.SetIndexPosition(new Vector2(i, j));
-                        tornado.UpdatePosition();
-                        tornado.ExcavateCard();
-                        tornado.UpdateRotation();
+                        _tornado.SetIndexPosition(new Vector2(i, j));
+                        _tornado.UpdatePosition();
+                        _tornado.ExcavateCard();
+                        _tornado.UpdateRotation();
                         continue;
                     }
 
