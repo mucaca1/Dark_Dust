@@ -30,6 +30,7 @@ namespace Game.UI {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
                 if (_player != null) {
                     _player.onChangeActivePlayer += HandleSwapPlayer;
+                    HandleSwapPlayer(_player.IsYourTurn, _player.PlayerName);
                 }
             }
         }

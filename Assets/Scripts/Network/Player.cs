@@ -8,8 +8,8 @@ namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private Renderer _renderer = null;
 
-        [SyncVar(hook = nameof(HandleChangePlayer))] [SerializeField]
-        private bool yourTurn = false;
+        [SyncVar(hook = nameof(HandleChangePlayer))]
+        private bool isYourTurn = false;
 
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
@@ -19,6 +19,8 @@ namespace Network {
         private PlaygroundCard _position = null;
 
         public event Action<bool, string> onChangeActivePlayer;
+
+        public bool IsYourTurn => isYourTurn;
 
         private void UpdatePlayerColor(Color oldColor, Color newColor) {
             _renderer.material.color = newColor;
@@ -36,12 +38,12 @@ namespace Network {
 
         [Server]
         public void EndTurn() {
-            yourTurn = false;
+            isYourTurn = false;
         }
 
         [Server]
         public void StartTurn() {
-            yourTurn = true;
+            isYourTurn = true;
         }
 
         [Server]
@@ -64,7 +66,7 @@ namespace Network {
             transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
             gameManager.DoAction();
         }
-        
+
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
@@ -72,13 +74,13 @@ namespace Network {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
             if (_position == null) return;
-            
+
             if (!card.CanMoveToThisPart(_position)) return;
-            
+
             card.RemoveSand(1);
             gameManager.DoAction();
         }
-        
+
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
@@ -87,21 +89,21 @@ namespace Network {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
             if (_position == null) return;
-            
+
             if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
-            
+
             card.ExcavateCard();
             card.UpdateRotation();
-            
+
             gameManager.DoAction();
         }
-        
+
         [Server]
         private void ServerPickUpAPart(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!card.IsDustNull()) return;
             if (!card.IsRevealed) return;
-            
+
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
             if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
@@ -118,12 +120,12 @@ namespace Network {
         public void CmdGoToPosition(PlaygroundCard card) {
             SetNewPosition(card);
         }
-        
+
         [Command]
         private void CmdRemoveSand(PlaygroundCard card) {
             ServerRemoveSand(card);
         }
-        
+
         [Command]
         private void CmdExcavate(PlaygroundCard card) {
             ServerExcavate(card);
@@ -145,7 +147,7 @@ namespace Network {
 
             CmdGoToPosition(card);
         }
-        
+
         [Client]
         public void RemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
@@ -153,14 +155,14 @@ namespace Network {
 
             CmdRemoveSand(card);
         }
-        
+
         [Client]
         public void Excavate(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
             if (card.IsRevealed) return;
             CmdExcavate(card);
         }
-        
+
         [Client]
         public void PickUpAPart(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
