@@ -40,6 +40,18 @@ namespace Game.Cards.PlaygroundCards {
         #region Server
         
         [Server]
+        public bool CanMoveToThisPart(PlaygroundCard from) {
+            if (_sandCard != null) {
+                if (_sandCard.DustValue > 1) return false;
+            }
+            if (from.indexPosition.x != indexPosition.x && from.indexPosition.y != indexPosition.y) return false;
+
+            if (Mathf.Abs(from.indexPosition.x - indexPosition.x) > 1 ||
+                Mathf.Abs(from.indexPosition.y - indexPosition.y) > 1) return false;
+            return true;
+        }
+        
+        [Server]
         public void AddSand() {
             if (_sandCard == null)
                 CreateSandCard(this);
