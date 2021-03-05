@@ -194,6 +194,16 @@ namespace Game.Cards.PlaygroundCards {
             return _sandCard == null;
         }
 
+        [Server]
+        public void SwapCards(PlaygroundCard destinationCard) {
+            Vector2 destinationPosition = destinationCard.GetIndexPosition();
+            destinationCard.SetIndexPosition(indexPosition);
+            indexPosition = destinationPosition;
+            
+            destinationCard.UpdatePosition();
+            UpdatePosition();
+        }
+
         #endregion
     }
 }
