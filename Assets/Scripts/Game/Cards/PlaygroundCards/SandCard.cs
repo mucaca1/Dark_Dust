@@ -3,7 +3,7 @@ using Mirror;
 using UnityEngine;
 
 namespace Game.Cards.PlaygroundCards {
-    public class SandCard : PlaygroundPart {
+    public class SandCard : NetworkBehaviour {
         [SerializeField] private Renderer softDust = null;
         [SerializeField] private Renderer hardDust = null;
 
@@ -12,11 +12,7 @@ namespace Game.Cards.PlaygroundCards {
 
         public int DustValue => _dustValue;
 
-        public event Action<SandCard> onDestroy; 
-
-        private void Awake() {
-            playgroundCardOffsetY = 0.05f;
-        }
+        public event Action<SandCard> onDestroy;
 
         public void AddDust() {
             _dustValue += 1;
