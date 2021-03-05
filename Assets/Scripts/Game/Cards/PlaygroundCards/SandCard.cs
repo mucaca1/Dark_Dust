@@ -13,14 +13,22 @@ namespace Game.Cards.PlaygroundCards {
         public int DustValue => _dustValue;
 
         public event Action<SandCard> onDestroy;
+        public static event Action onAddSand;
+        public static event Action onRemoveSand;
+
+        [ServerCallback]
+        private void Start() {
+            onAddSand?.Invoke();
+        }
 
         public void AddDust() {
             _dustValue += 1;
+            onAddSand?.Invoke();
         }
 
         public void RemoveDust(int count = 1) {
             _dustValue -= count;
-
+            onRemoveSand?.Invoke();
             if (_dustValue != 0) return;
             
             onDestroy?.Invoke(this);
@@ -28,7 +36,7 @@ namespace Game.Cards.PlaygroundCards {
 
         private void HandleDustValue(int oldValue, int newDustValue) {
             softDust.gameObject.SetActive(newDustValue == 1);
-            hardDust.gameObject.SetActive(newDustValue == 2);
+            hardDust.gameObject.SetActive(newDustValue >= 2);
         }
     }
 }

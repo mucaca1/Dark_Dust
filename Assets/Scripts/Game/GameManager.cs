@@ -32,11 +32,14 @@ namespace Game {
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
+        [SyncVar]private int _sandStackReaming = 48;
 
         private int _stromTickMark = 2;
 
         private void Start() {
             if (isServer) {
+                SandCard.onAddSand += AddSandHandler;
+                SandCard.onRemoveSand += RemoveSandHandler;
                 _playgroundCardDatas = Resources.LoadAll<PlaygroundCardData>("");
 
                 Debug.Log(_playgroundCardDatas.Length == 0
@@ -64,6 +67,16 @@ namespace Game {
         }
 
         #region Server
+
+        [Server]
+        private void AddSandHandler() {
+            --_sandStackReaming;
+        }
+
+        [Server]
+        private void RemoveSandHandler() {
+            ++_sandStackReaming;
+        }
 
         [Server]
         private void GenerateNewPlayGround() {
@@ -148,7 +161,7 @@ namespace Game {
 
             // Sort cards.
             _tornadoCards = _tornadoCards.OrderBy(x => Guid.NewGuid()).ToList();
-            
+
             Debug.Log("Tornado cards has been generated and sorted.");
         }
 

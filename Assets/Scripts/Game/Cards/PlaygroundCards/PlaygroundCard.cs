@@ -19,8 +19,6 @@ namespace Game.Cards.PlaygroundCards {
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
 
-        public static event Action onDustRemove;
-
         public PlaygroundCardType CardType => _cardType;
         public CardDirection CardDirection => _cardDirection;
 
