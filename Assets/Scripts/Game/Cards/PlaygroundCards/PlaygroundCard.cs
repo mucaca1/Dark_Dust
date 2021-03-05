@@ -11,11 +11,15 @@ namespace Game.Cards.PlaygroundCards {
         [SerializeField] private Transform cardReference = null;
         [SerializeField] private Transform sandSpawnerReference = null;
         [SyncVar] protected string cardName;
-        [SyncVar] private bool _isRevealed = false;
 
-        [SerializeField] private GameObject dustCardPrefab;
+        [SyncVar(hook = nameof(UpdateRotation))]
+        private bool _isRevealed = false;
 
-        private SandCard _sandCard = null;
+        [SyncVar(hook = nameof(HandleSandCount))]
+        private int _sandCount = 0;
+
+        [SerializeField] private SandCard dustCardPrefab;
+
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
 
@@ -32,6 +36,9 @@ namespace Game.Cards.PlaygroundCards {
 
         private int[] _stayingPositionPlayer = new int[5];
         public bool IsRevealed => _isRevealed;
+
+        public static event Action onAddSand;
+        public static event Action onRemoveSand;
 
         public Vector3 GetPosition() {
             return position;
@@ -64,13 +71,9 @@ namespace Game.Cards.PlaygroundCards {
             }
         }
 
-        public void UpdateRotation() {
-            if (_isRevealed)
+        public void UpdateRotation(bool oldValue, bool newValue) {
+            if (newValue)
                 cardReference.Rotate(0.0f, 0.0f, 180.0f, Space.Self);
-        }
-
-        public void ExcavateCard() {
-            _isRevealed = true;
         }
 
         public void UpdatePosition() {
@@ -109,6 +112,11 @@ namespace Game.Cards.PlaygroundCards {
         #region Server
 
         [Server]
+        public void ExcavateCard() {
+            _isRevealed = true;
+        }
+
+        [Server]
         public bool PlayerStayHere(int playerId) {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
                 if (_stayingPositionPlayer[i] == playerId) {
@@ -141,9 +149,7 @@ namespace Game.Cards.PlaygroundCards {
 
         [Server]
         public bool CanMoveToThisPart(PlaygroundCard from) {
-            if (_sandCard != null) {
-                if (_sandCard.DustValue > 1) return false;
-            }
+            if (_sandCount > 1) return false;
 
             if (from.indexPosition.x != indexPosition.x && from.indexPosition.y != indexPosition.y) return false;
 
@@ -152,46 +158,22 @@ namespace Game.Cards.PlaygroundCards {
             return true;
         }
 
-        [Server]
-        public void AddSand() {
-            if (_sandCard == null)
-                CreateSandCard(this);
-            else
-                _sandCard.AddDust();
-        }
 
         [Server]
         public void RemoveSand(int count = 1) {
-            if (_sandCard == null) return;
-            _sandCard.RemoveDust(count);
+            _sandCount = Mathf.Max(0, _sandCount - count);
+            onRemoveSand?.Invoke();
         }
 
         [Server]
-        private void CreateSandCard(PlaygroundCard card) {
-            GameManager manager = FindObjectOfType<GameManager>();
-            GameObject dust = Instantiate(dustCardPrefab, sandSpawnerReference.position,
-                Quaternion.identity);
-
-            SandCard sandCard = dust.GetComponent<SandCard>();
-            _sandCard = sandCard;
-            sandCard.onDestroy += DestroySand;
-
-            // Refactor append as child
-            dust.transform.parent = sandSpawnerReference;
-
-            NetworkServer.Spawn(dust);
+        public void AddSand() {
+            ++_sandCount;
+            onAddSand?.Invoke();
         }
 
         [Server]
-        private void DestroySand(SandCard card) {
-            _sandCard.onDestroy -= DestroySand;
-            _sandCard = null;
-            NetworkServer.Destroy(card.gameObject);
-        }
-
-        [Server]
-        public bool IsDustNull() {
-            return _sandCard == null;
+        public bool IsDust() {
+            return _sandCount != 0;
         }
 
         [Server]
@@ -199,9 +181,29 @@ namespace Game.Cards.PlaygroundCards {
             Vector2 destinationPosition = destinationCard.GetIndexPosition();
             destinationCard.SetIndexPosition(indexPosition);
             indexPosition = destinationPosition;
-            
+
             destinationCard.UpdatePosition();
             UpdatePosition();
+        }
+
+        #endregion
+
+        #region Client
+
+        [Client]
+        private void HandleSandCount(int oldDustCount, int newDustCount) {
+            if (newDustCount == 1) {
+                GameManager manager = FindObjectOfType<GameManager>();
+                GameObject dust = Instantiate(dustCardPrefab.gameObject, sandSpawnerReference.position,
+                    Quaternion.identity);
+                // Refactor append as child
+                dust.transform.parent = sandSpawnerReference;
+            }
+
+            foreach (Transform children in sandSpawnerReference) {
+                SandCard sandCard = children.GetComponent<SandCard>();
+                sandCard.HandleDustValue(newDustCount);
+            }
         }
 
         #endregion

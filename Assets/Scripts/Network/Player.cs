@@ -70,7 +70,7 @@ namespace Network {
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (card.IsDustNull()) return;
+            if (card.IsRevealed) return;
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
             if (_position == null) return;
@@ -84,7 +84,6 @@ namespace Network {
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!card.IsDustNull()) return;
             if (card.IsRevealed) return;
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!gameManager.IsPlayerTurn(this)) return;
@@ -93,7 +92,6 @@ namespace Network {
             if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
 
             card.ExcavateCard();
-            card.UpdateRotation();
 
             gameManager.DoAction();
         }
@@ -101,7 +99,6 @@ namespace Network {
         [Server]
         private void ServerPickUpAPart(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!card.IsDustNull()) return;
             if (!card.IsRevealed) return;
 
             GameManager gameManager = FindObjectOfType<GameManager>();

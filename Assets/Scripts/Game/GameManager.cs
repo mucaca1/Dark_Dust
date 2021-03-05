@@ -38,8 +38,8 @@ namespace Game {
 
         private void Start() {
             if (isServer) {
-                SandCard.onAddSand += AddSandHandler;
-                SandCard.onRemoveSand += RemoveSandHandler;
+                PlaygroundCard.onAddSand += AddSandHandler;
+                PlaygroundCard.onRemoveSand += RemoveSandHandler;
                 _playgroundCardDatas = Resources.LoadAll<PlaygroundCardData>("");
 
                 Debug.Log(_playgroundCardDatas.Length == 0
@@ -117,7 +117,6 @@ namespace Game {
                         _tornado.SetIndexPosition(new Vector2(i, j));
                         _tornado.UpdatePosition();
                         _tornado.ExcavateCard();
-                        _tornado.UpdateRotation();
                         continue;
                     }
 
@@ -127,7 +126,6 @@ namespace Game {
 
                     if (card.CardType == PlaygroundCardType.Start) {
                         card.ExcavateCard();
-                        card.UpdateRotation();
                     }
 
                     if ((i == 0 && j == 2) || (i == 1 && j == 1) || (i == 1 && j == 3) ||
