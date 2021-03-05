@@ -17,6 +17,7 @@ namespace Game.Cards {
         private float playgroundCardOffset = .1f;
 
         private int[] _stayingPositionPlayer = new int[5];
+        public bool IsRevealed => _isRevealed;
 
         [ServerCallback]
         private void Awake() {
@@ -35,11 +36,6 @@ namespace Game.Cards {
             );
             gameObject.transform.position = pos;
             SetPosition(pos);
-        }
-
-        public void UpdateRotation() {
-            if (_isRevealed)
-                gameObject.transform.Rotate(0.0f, 0.0f, 180.0f, Space.Self);
         }
 
         public Vector3 GetPosition() {
@@ -66,6 +62,11 @@ namespace Game.Cards {
             playgroundStartPosition = startPosition;
         }
 
+        public void UpdateRotation() {
+            if (_isRevealed)
+                gameObject.transform.Rotate(0.0f, 0.0f, 180.0f, Space.Self);
+        }
+
         public void ExcavateCard() {
             _isRevealed = true;
         }
@@ -80,7 +81,7 @@ namespace Game.Cards {
                 Mathf.Abs(from.indexPosition.y - indexPosition.y) > 1) return false;
             return true;
         }
-        
+
         [Server]
         public Vector3 GetNextPlayerPosition(int playerId) {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
@@ -89,6 +90,7 @@ namespace Game.Cards {
                     return positionToStay[i].position;
                 }
             }
+
             return Vector3.zero;
         }
 

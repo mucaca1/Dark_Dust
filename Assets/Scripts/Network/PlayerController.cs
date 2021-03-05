@@ -30,6 +30,7 @@ namespace Network {
                         player.GoToPosition(card);
                         break;
                     case PlayerAction.EXCAVATE:
+                        player.Excavate(card);
                         break;
                     case PlayerAction.REMOVE_SAND:
                         player.RemoveSand(card);

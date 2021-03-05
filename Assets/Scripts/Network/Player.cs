@@ -77,6 +77,21 @@ namespace Network {
             card.RemoveSand(1);
             gameManager.DoAction();
         }
+        
+        [Server]
+        private void ServerExcavate(PlaygroundCard card) {
+            if (!card.IsDustNull()) return;
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (!gameManager.IsPlayerTurn(this)) return;
+            if (_position == null) return;
+            
+            if (!card.CanMoveToThisPart(_position)) return;
+            
+            card.ExcavateCard();
+            card.UpdateRotation();
+            
+            gameManager.DoAction();
+        }
 
         [Command]
         private void CmdSetStartPosition() {
@@ -91,6 +106,11 @@ namespace Network {
         [Command]
         private void CmdRemoveSand(PlaygroundCard card) {
             ServerRemoveSand(card);
+        }
+        
+        [Command]
+        private void CmdExcavate(PlaygroundCard card) {
+            ServerExcavate(card);
         }
 
         #endregion
@@ -109,6 +129,13 @@ namespace Network {
             if (!hasAuthority) return;
 
             CmdRemoveSand(card);
+        }
+        
+        [Client]
+        public void Excavate(PlaygroundCard card) {
+            if (card.CardType == PlaygroundCardType.Tornado) return;
+            if (card.IsRevealed) return;
+            CmdExcavate(card);
         }
 
         #endregion
