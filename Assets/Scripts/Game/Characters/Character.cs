@@ -38,16 +38,21 @@ namespace Game.Characters {
             _maxWater = data.water;
             _abilityDescription = data.abilityDescription;
             _abilities = data.ability;
+
+            _water = _maxWater;
+            onWaterValueChanged?.Invoke(_water, _maxWater);
         }
 
         [Server]
         public void SetWater(int water) {
             _water = Mathf.Max(_maxWater, _water + water);
+            onWaterValueChanged?.Invoke(_water, _maxWater);
         }
 
         [Server]
         public void DrinkWater() {
             _water = Mathf.Max(0, _water - 1);
+            onWaterValueChanged?.Invoke(_water, _maxWater);
             if (_water != 0) return;
             onCharacterDie?.Invoke(this);
         }

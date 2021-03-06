@@ -47,6 +47,8 @@ namespace Game {
 
         public PlaygroundCard Tornado => _tornado;
 
+        public List<PlaygroundCard> PlaygroundCards => _playgroundCards;
+
         public event Action<int> onTakedItemsIncrease;
 
         private void Start() {

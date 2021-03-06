@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Characters;
 using Mirror;
 using Network;
+using NUnit.Framework;
 using UnityEngine;
 
 namespace Game.Cards.PlaygroundCards {
@@ -114,6 +115,17 @@ namespace Game.Cards.PlaygroundCards {
             frontImage.material.mainTexture = cardData.frontImage.material.mainTexture;
             _cardType = cardData._cardType;
             _cardDirection = cardData._cardDirection;
+        }
+
+        public List<Character> GetCharacters() {
+            List<Character> characters = new List<Character>();
+            for (var i = 0; i < _stayingPositionPlayer.Length; i++) {
+                if (_stayingPositionPlayer[i] == null) continue;
+
+                characters.Add(_stayingPositionPlayer[i]);
+            }
+
+            return characters;
         }
 
 
