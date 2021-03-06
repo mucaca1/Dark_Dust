@@ -17,7 +17,8 @@ namespace Game.Characters {
 
         private CharacterAbility[] _abilities = new CharacterAbility[0];
 
-        public static event Action<Character> onCharacterDie;
+        public event Action<int, int> onWaterValueChanged;
+        public event Action<Character> onCharacterDie;
 
         public int MAXWater => _maxWater;
 
