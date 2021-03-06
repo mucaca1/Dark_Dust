@@ -28,6 +28,7 @@ namespace Game {
 
         [SyncVar] private int _stepsRemaning = 4;
         [SyncVar] private int _takedItems = 0;
+        [SyncVar] private int _takedItemsCount = 0;
         [SerializeField] private Transform playGroundStartTransform = null;
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
@@ -45,6 +46,8 @@ namespace Game {
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
 
         public PlaygroundCard Tornado => _tornado;
+
+        public event Action<int> onTakedItemsIncrease;
 
         private void Start() {
             if (isServer) {
@@ -74,6 +77,8 @@ namespace Game {
 
         private void TakeItem(int index) {
             _takedItems |= 1 << index;
+            ++_takedItemsCount;
+            onTakedItemsIncrease?.Invoke(_takedItemsCount);
         }
 
         #region Server
