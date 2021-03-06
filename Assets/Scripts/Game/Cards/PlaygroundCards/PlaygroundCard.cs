@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Game.Characters;
 using Mirror;
 using Network;
 using UnityEngine;
@@ -34,7 +36,7 @@ namespace Game.Cards.PlaygroundCards {
         private float playgroundCardSize = 1f;
         private float playgroundCardOffset = .1f;
 
-        private int[] _stayingPositionPlayer = new int[5];
+        private Character[] _stayingPositionPlayer = new Character[5];
         public bool IsRevealed => _isRevealed;
 
         public static event Action onAddSand;
@@ -67,7 +69,7 @@ namespace Game.Cards.PlaygroundCards {
         [ServerCallback]
         private void Awake() {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
-                _stayingPositionPlayer[i] = -1;
+                _stayingPositionPlayer[i] = null;
             }
         }
 
@@ -86,6 +88,12 @@ namespace Game.Cards.PlaygroundCards {
             );
             gameObject.transform.position = pos;
             SetPosition(pos);
+            
+            for (var i = 0; i < _stayingPositionPlayer.Length; i++) {
+                if (_stayingPositionPlayer[i] == null) continue;
+
+                _stayingPositionPlayer[i].gameObject.transform.position = positionToStay[i].position;
+            }
         }
 
         public void SetData(PlaygroundCardData cardData, Vector3 startPosition) {
@@ -117,9 +125,9 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         [Server]
-        public bool PlayerStayHere(int playerId) {
+        public bool IsCharacterHere(Character character) {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
-                if (_stayingPositionPlayer[i] == playerId) {
+                if (_stayingPositionPlayer[i] == character) {
                     return true;
                 }
             }
@@ -128,10 +136,10 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         [Server]
-        public Vector3 GetNextPlayerPosition(int playerId) {
+        public Vector3 GetNextPlayerPosition(Character character) {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
-                if (_stayingPositionPlayer[i] == -1) {
-                    _stayingPositionPlayer[i] = playerId;
+                if (_stayingPositionPlayer[i] == null) {
+                    _stayingPositionPlayer[i] = character;
                     return positionToStay[i].position;
                 }
             }
@@ -140,10 +148,10 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         [Server]
-        public void LeavePart(int playerId) {
+        public void LeavePart(Character character) {
             for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
-                if (_stayingPositionPlayer[i] == playerId)
-                    _stayingPositionPlayer[i] = -1;
+                if (_stayingPositionPlayer[i] == character)
+                    _stayingPositionPlayer[i] = null;
             }
         }
 

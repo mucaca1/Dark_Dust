@@ -56,7 +56,7 @@ namespace Game.Characters {
         private void SetStartPosition() {
             GameManager manager = FindObjectOfType<GameManager>();
             _position = manager.GetStartCard();
-            transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
+            transform.position = _position.GetNextPlayerPosition(this);
         }
 
         [Server]
@@ -65,11 +65,11 @@ namespace Game.Characters {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position != null) {
                 if (!card.CanMoveToThisPart(_position)) return;
-                _position.LeavePart(connectionToClient.connectionId);
+                _position.LeavePart(this);
             }
 
             _position = card;
-            transform.position = _position.GetNextPlayerPosition(connectionToClient.connectionId);
+            transform.position = _position.GetNextPlayerPosition(this);
             gameManager.DoAction();
         }
         
@@ -95,7 +95,7 @@ namespace Game.Characters {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position == null) return;
 
-            if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
+            if (!card.IsCharacterHere(this)) return;
 
             card.ExcavateCard();
 
@@ -109,7 +109,7 @@ namespace Game.Characters {
 
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (!card.PlayerStayHere(connectionToClient.connectionId)) return;
+            if (!card.IsCharacterHere(this)) return;
             if (gameManager.TryPickUpAPart(card))
                 gameManager.DoAction();
         }

@@ -6,27 +6,26 @@ using UnityEngine;
 
 namespace Game.UI {
     public class GameManagerView : MonoBehaviour {
-
         [SerializeField] private TMP_Text _collectedPartsText = null;
         [SerializeField] private TMP_Text _playerWaterText = null;
+        [SerializeField] private GameManager _gameManager = null;
 
         private Player _player = null;
-        
+
         private void Start() {
-            GameManager gm = FindObjectOfType<GameManager>();
-            gm.onTakedItemsIncrease += HandleItemsUpdated;
+            _gameManager.onTakedItemsIncrease += HandleItemsUpdated;
         }
 
         private void Update() {
             if (_player == null) {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
-                _player.Character.onWaterValueChanged += HandlePlayerWater;
+                if (_player != null)
+                    _player.Character.onWaterValueChanged += HandlePlayerWater;
             }
         }
 
         private void OnDestroy() {
-            GameManager gm = FindObjectOfType<GameManager>();
-            gm.onTakedItemsIncrease -= HandleItemsUpdated;
+            _gameManager.onTakedItemsIncrease -= HandleItemsUpdated;
             _player.Character.onWaterValueChanged -= HandlePlayerWater;
         }
 
