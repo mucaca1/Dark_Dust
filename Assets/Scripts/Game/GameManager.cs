@@ -50,6 +50,9 @@ namespace Game {
         public List<PlaygroundCard> PlaygroundCards => _playgroundCards;
 
         public event Action<int> onTakedItemsIncrease;
+        public event Action<int> onStromTickMarkChanged;
+        public event Action<int> onDustCardSet;
+        public event Action<int> onTornadoCardChanged;
 
         private void Start() {
             if (isServer) {
@@ -88,16 +91,19 @@ namespace Game {
         [Server]
         public void StormTickUp() {
             ++_stromTickMark;
+            onStromTickMarkChanged?.Invoke(_stromTickMark);
         }
 
         [Server]
         private void AddSandHandler() {
             --_sandStackReaming;
+            onDustCardSet?.Invoke(_sandStackReaming);
         }
 
         [Server]
         private void RemoveSandHandler() {
             ++_sandStackReaming;
+            onDustCardSet?.Invoke(_sandStackReaming);
         }
 
         [Server]
@@ -247,6 +253,7 @@ namespace Game {
                 if (_tornadoCards.Count == 0)
                     GenerateStormDeck();
                 TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
+                onTornadoCardChanged.Invoke(_tornadoCards.Count);
                 GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
                 if (card.TryGetComponent(out TornadoMove move)) {
                     move.Steps = tornadoCard.steps;
