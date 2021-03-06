@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f1df1eca605486fa848f7bc5886dfec, type: 3}
   m_Name: Explorer
   m_EditorClassIdentifier: 
-  characterName: Character Name
-  water: -1
-  abilityDescription: Ability Description
+  characterName: Explorer
+  water: 5
+  abilityDescription: "The Explorer can move, remove sand,\r and may use Dune Blasters
+    diagonally"

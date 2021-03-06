@@ -1,6 +1,7 @@
 using System;
 using Game;
 using Game.Cards.PlaygroundCards;
+using Game.Characters;
 using Mirror;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace Network {
         public Color PlayerColor { get; set; } = Color.black;
 
         private PlaygroundCard _position = null;
+        public Character Character { get; set; } = null;
 
         public event Action<bool, string> onChangeActivePlayer;
 

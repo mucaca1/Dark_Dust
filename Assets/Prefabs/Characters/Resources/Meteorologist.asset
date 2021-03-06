@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f1df1eca605486fa848f7bc5886dfec, type: 3}
   m_Name: Meteorologist
   m_EditorClassIdentifier: 
-  characterName: Character Name
-  water: -1
-  abilityDescription: Ability Description
+  characterName: Meteorologist
+  water: 5
+  abilityDescription: "The Meteorologist may spend actions to draw fewer\r Storm
+    cards (1 card per action) at the end of her turn.\r She may also choose to spend
+    1 action to look at the\r top Storm cards, equal to the Storm level, and may\r
+    place one at the bottom of the deck"
