@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Explorer
   water: 5
-  abilityDescription: "The Explorer can move, remove sand,\r and may use Dune Blasters
-    diagonally"
+  abilityDescription: The Explorer can move, remove sand, and may use Dune Blasters
+    diagonally.

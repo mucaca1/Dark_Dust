@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Navigator
   water: 5
-  abilityDescription: "The Navigator may move another player up to 3\r unblocked
-    tiles per action, including tunnels.\r She can move the Explorer diagonally and
-    can move\r the Climber through blocked tiles. When moved in\r this way, the Climber
-    can also use his power to take\r along 1 other player-including the Navigator"
+  abilityDescription: The Navigator may move another player up to 3 unblocked tiles
+    per action, including tunnels. She can move the Explorer diagonally and can move
+    the Climber through blocked tiles. When moved in this way, the Climber can also
+    use his power to take along 1 other player-including the Navigator.

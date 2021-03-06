@@ -29,8 +29,6 @@ namespace Game {
         [SyncVar] private int _stepsRemaning = 4;
         [SyncVar] private int _takedItems = 0;
         [SerializeField] private Transform playGroundStartTransform = null;
-
-        [SerializeField] private Character _characterPrefab = null;
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
 
@@ -44,7 +42,7 @@ namespace Game {
         [SyncVar] private int _sandStackReaming = 48;
 
         private int _stromTickMark = 2;
-        private Queue<CharacterData> _charactersData = new Queue<CharacterData>(); 
+        private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
 
         public PlaygroundCard Tornado => _tornado;
 
@@ -155,7 +153,7 @@ namespace Game {
 
             GenerateStormDeck();
         }
-        
+
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
@@ -163,6 +161,7 @@ namespace Game {
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
+
             data = data.OrderBy(x => Guid.NewGuid()).ToList();
             foreach (CharacterData characterData in data) {
                 _charactersData.Enqueue(characterData);
@@ -203,15 +202,6 @@ namespace Game {
 
         [Server]
         public void RegisterPlayerToQueue(Player player) {
-            if (player.Character == null) {
-                CharacterData characterData = GetCharacterData();
-                GameObject characterObj = Instantiate(_characterPrefab.gameObject, Vector3.zero, Quaternion.identity);
-
-                Character character = characterObj.GetComponent<Character>();
-                character.InitializePlayer(characterData);
-                player.Character = character;
-                NetworkServer.Spawn(characterObj, connectionToClient);
-            }
             _playerOrder.Enqueue(player);
             if (_activePlayer == null) {
                 _activePlayer = _playerOrder.Dequeue();
@@ -220,7 +210,7 @@ namespace Game {
         }
 
         [Server]
-        private CharacterData GetCharacterData() {
+        public CharacterData GetCharacterData() {
             if (_charactersData.Count == 0)
                 LoadCharacterData();
 

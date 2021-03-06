@@ -1,7 +1,6 @@
-﻿using System;
-using Game;
+﻿using Game;
 using Game.Cards.PlaygroundCards;
-using Mirror;
+using Game.Characters;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,7 +9,7 @@ namespace Network {
         [SerializeField] private LayerMask _layerMask = new LayerMask();
 
         private PlayerAction _action = PlayerAction.WALK;
-        
+
         private Camera _mainCamera;
 
         private void Start() {
@@ -23,23 +22,22 @@ namespace Network {
             Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _layerMask)) return;
             if (hit.collider.TryGetComponent<PlaygroundCard>(out PlaygroundCard card)) {
-                Player player = GetComponent<Player>();
+                Character character = GetComponent<Character>();
 
                 switch (_action) {
                     case PlayerAction.WALK:
-                        player.GoToPosition(card);
+                        character.GoToPosition(card);
                         break;
                     case PlayerAction.EXCAVATE:
-                        player.Excavate(card);
+                        character.Excavate(card);
                         break;
                     case PlayerAction.REMOVE_SAND:
-                        player.RemoveSand(card);
+                        character.RemoveSand(card);
                         break;
                     case PlayerAction.PICK_UP_A_PART:
-                        player.PickUpAPart(card);
+                        character.PickUpAPart(card);
                         break;
                 }
-                
             }
         }
 

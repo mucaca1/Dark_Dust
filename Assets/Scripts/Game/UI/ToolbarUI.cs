@@ -40,19 +40,19 @@ namespace Game.UI {
         }
 
         private void WalkAction() {
-            _player.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.WALK);
+            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.WALK);
         }
 
         private void ExcavateAction() {
-            _player.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.EXCAVATE);
+            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.EXCAVATE);
         }
 
         private void RemoveSandAction() {
-            _player.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.REMOVE_SAND);
+            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.REMOVE_SAND);
         }
 
         private void PickUpAPartAction() {
-            _player.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.PICK_UP_A_PART);
+            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.PICK_UP_A_PART);
         }
 
         private void HandleSwapPlayer(bool yourTurn, string playerName) {
