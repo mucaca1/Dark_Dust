@@ -16,6 +16,12 @@ namespace Game {
             public TornadoCard cardPrefab = null;
         }
 
+        private class TornadoDeckCardData {
+            public TornadoCard cardPrefab = null;
+            public int steps = 0;
+            public TornadoDirection direction;
+        }
+
         private Player _activePlayer = null;
 
         [SyncVar] private int _stepsRemaning = 4;
@@ -25,16 +31,18 @@ namespace Game {
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
 
-        private Queue<TornadoCard> _tornadoCards = new Queue<TornadoCard>();
+        private Queue<TornadoDeckCardData> _tornadoCards = new Queue<TornadoDeckCardData>();
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
         private PlaygroundCard _tornado = null;
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
-        [SyncVar]private int _sandStackReaming = 48;
+        [SyncVar] private int _sandStackReaming = 48;
 
         private int _stromTickMark = 2;
+
+        public PlaygroundCard Tornado => _tornado;
 
         private void Start() {
             if (isServer) {
@@ -67,6 +75,11 @@ namespace Game {
         }
 
         #region Server
+
+        [Server]
+        public void StormTickUp() {
+            ++_stromTickMark;
+        }
 
         [Server]
         private void AddSandHandler() {
@@ -141,30 +154,33 @@ namespace Game {
 
         [Server]
         private void GenerateStormDeck() {
+            _tornadoCards.Clear();
             int moveDirection = 0;
             int moveCounter = 0;
-            List<TornadoCard> generatedSet = new List<TornadoCard>();
+            List<TornadoDeckCardData> generatedSet = new List<TornadoDeckCardData>();
             foreach (TornadoCardSet cardSet in _tornadoCardsPrefab) {
-                while (0 != cardSet.count--) {
+                for (var i = 0; i < cardSet.count; i++) {
+                    TornadoDeckCardData cardData = new TornadoDeckCardData();
+                    cardData.cardPrefab = cardSet.cardPrefab;
                     TornadoMove tornadoMove = cardSet.cardPrefab as TornadoMove;
                     if (tornadoMove != null) {
-                        tornadoMove.Direction = (TornadoDirection) (moveDirection % 4);
+                        cardData.direction = (TornadoDirection) (moveDirection % 4);
                         if (moveDirection++ % 8 == 0)
                             ++moveCounter;
-                        tornadoMove.Steps = moveCounter;
+                        cardData.steps = moveCounter;
                     }
 
-                    generatedSet.Add(cardSet.cardPrefab);
+                    generatedSet.Add(cardData);
                 }
             }
 
             // Sort cards.
             generatedSet = generatedSet.OrderBy(x => Guid.NewGuid()).ToList();
 
-            foreach (TornadoCard card in generatedSet) {
+            foreach (TornadoDeckCardData card in generatedSet) {
                 _tornadoCards.Enqueue(card);
             }
-            
+
             Debug.Log("Tornado cards has been generated and sorted.");
         }
 
@@ -187,18 +203,29 @@ namespace Game {
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
 
-            DesertTurn();
-            
+            StartCoroutine(DesertTurn());
+
             _activePlayer.StartTurn();
         }
 
         [Server]
-        private void DesertTurn() {
+        private IEnumerator DesertTurn() {
             Debug.Log("Desert is in command");
-            TornadoCard tornadoCard = _tornadoCards.Dequeue();
-            GameObject card = Instantiate(tornadoCard.gameObject, Vector3.zero, Quaternion.identity);
-            card.GetComponent<TornadoCard>().DoAction();
-            Destroy(card);
+            int pickUpCards = _stromTickMark;
+            for (int i = 0; i < pickUpCards; i++) {
+                if (_tornadoCards.Count == 0)
+                    GenerateStormDeck();
+                TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
+                GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
+                if (card.TryGetComponent(out TornadoMove move)) {
+                    move.Steps = tornadoCard.steps;
+                    move.Direction = tornadoCard.direction;
+                }
+
+                card.GetComponent<TornadoCard>().DoAction();
+                Destroy(card);
+                yield return new WaitForSeconds(1);
+            }
         }
 
         [Server]
@@ -240,6 +267,21 @@ namespace Game {
             }
 
             return false;
+        }
+
+        [Server]
+        public void MoveTornadoToDestination(PlaygroundCard destination) {
+            _tornado.SwapCards(destination);
+        }
+
+        [Server]
+        public PlaygroundCard GetCardAtIndex(Vector2 position) {
+            foreach (PlaygroundCard playgroundCard in _playgroundCards) {
+                if (position.Equals(playgroundCard.GetIndexPosition()))
+                    return playgroundCard;
+            }
+
+            return null;
         }
 
         #endregion
