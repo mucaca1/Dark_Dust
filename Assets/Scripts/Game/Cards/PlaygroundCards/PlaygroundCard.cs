@@ -4,10 +4,12 @@ using Game.Characters;
 using Mirror;
 using Network;
 using NUnit.Framework;
+using TMPro;
 using UnityEngine;
 
 namespace Game.Cards.PlaygroundCards {
     public class PlaygroundCard : NetworkBehaviour {
+        [SerializeField] private TMP_Text _sandCounterText = null;
         [SerializeField] private MeshRenderer backImage;
         [SerializeField] private MeshRenderer frontImage;
         [SerializeField] private Transform[] positionToStay;
@@ -228,6 +230,9 @@ namespace Game.Cards.PlaygroundCards {
                 SandCard sandCard = children.GetComponent<SandCard>();
                 sandCard.HandleDustValue(newDustCount);
             }
+
+            _sandCounterText.text = newDustCount.ToString();
+            _sandCounterText.gameObject.SetActive(newDustCount > 2);
         }
 
         #endregion
