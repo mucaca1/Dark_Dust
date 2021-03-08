@@ -9,9 +9,9 @@ namespace Game.Characters {
         
         public int water = -1;
 
+        public string[] abilityNames;
+
         [TextArea]
         public string abilityDescription = "Ability Description";
-
-        public CharacterAbility[] ability = new CharacterAbility[0];
     }
 }

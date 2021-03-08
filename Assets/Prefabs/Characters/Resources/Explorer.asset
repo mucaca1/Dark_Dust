@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Explorer
   water: 5
+  abilityNames:
+  - ExploreAbility
   abilityDescription: The Explorer can move, remove sand, and may use Dune Blasters
     diagonally.

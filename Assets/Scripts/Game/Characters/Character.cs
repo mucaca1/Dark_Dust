@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Game.Cards.PlaygroundCards;
 using Game.Characters.Ability;
 using Mirror;
@@ -15,7 +16,7 @@ namespace Game.Characters {
 
         private PlaygroundCard _position = null;
 
-        private CharacterAbility[] _abilities = new CharacterAbility[0];
+        private List<CharacterAbility> _abilities = new List<CharacterAbility>();
 
         public event Action<int, int> onWaterValueChanged;
         public event Action<Character> onCharacterDie;
@@ -60,7 +61,12 @@ namespace Game.Characters {
             _characterName = data.characterName;
             _maxWater = data.water;
             _abilityDescription = data.abilityDescription;
-            _abilities = data.ability;
+            
+            foreach (string dataAbilityName in data.abilityNames) {
+                CharacterAbility ability = Resources.Load<CharacterAbility>("Ability/" + dataAbilityName);
+                CharacterAbility gameObject = Instantiate(ability, Vector3.zero, Quaternion.identity);
+                _abilities.Add(gameObject);
+            }
 
             _water = _maxWater;
             onWaterValueChanged?.Invoke(_water, _maxWater);
@@ -92,7 +98,8 @@ namespace Game.Characters {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position != null) {
-                if ((card.CanSeeThisCard(_position) || CanSeeThisPart(card)) && !card.CanMoveToThisPart()) return;
+                if (!(card.CanSeeThisCard(_position) || CanSeeThisPart(card))) return;
+                if (!card.CanMoveToThisPart()) return;
                 _position.LeavePart(this);
             }
 
