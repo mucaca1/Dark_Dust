@@ -253,7 +253,7 @@ namespace Game {
                 if (_tornadoCards.Count == 0)
                     GenerateStormDeck();
                 TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
-                onTornadoCardChanged.Invoke(_tornadoCards.Count);
+                onTornadoCardChanged?.Invoke(_tornadoCards.Count);
                 GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
                 if (card.TryGetComponent(out TornadoMove move)) {
                     move.Steps = tornadoCard.steps;
