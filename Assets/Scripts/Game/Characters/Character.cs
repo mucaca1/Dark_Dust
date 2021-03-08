@@ -30,6 +30,18 @@ namespace Game.Characters {
             CmdSetStartPosition();
         }
 
+        private int RemoveExtraSand() {
+            int sand = 0;
+            
+            foreach (CharacterAbility ability in _abilities) {
+                RemoveSandAbility rms = ability as RemoveSandAbility;
+                if (rms == null) continue;
+                sand += rms.ExtraSandToRemove;
+            }
+            
+            return sand;
+        }
+
         #region Server
 
         [Server]
@@ -87,7 +99,7 @@ namespace Game.Characters {
 
             if (!card.CanSeeThisCard(_position)) return;
 
-            card.RemoveSand(1);
+            card.RemoveSand(1 + RemoveExtraSand());
             gameManager.DoAction();
         }
         
