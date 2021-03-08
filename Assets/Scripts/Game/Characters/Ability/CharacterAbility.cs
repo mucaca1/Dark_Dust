@@ -1,4 +1,6 @@
-﻿namespace Game.Characters.Ability {
+﻿using UnityEngine;
+
+namespace Game.Characters.Ability {
     public class CharacterAbility {
     }
 }

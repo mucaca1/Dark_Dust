@@ -10,9 +10,9 @@ namespace Game.Characters {
         [SyncVar] private string _characterName;
         [SyncVar] private int _water;
         private string _abilityDescription;
-        
+
         [SyncVar] private int _maxWater;
-        
+
         private PlaygroundCard _position = null;
 
         private CharacterAbility[] _abilities = new CharacterAbility[0];
@@ -32,14 +32,25 @@ namespace Game.Characters {
 
         private int RemoveExtraSand() {
             int sand = 0;
-            
+
             foreach (CharacterAbility ability in _abilities) {
                 RemoveSandAbility rms = ability as RemoveSandAbility;
                 if (rms == null) continue;
                 sand += rms.ExtraSandToRemove;
             }
-            
+
             return sand;
+        }
+
+        private bool CanSeeThisPart(PlaygroundCard destination) {
+            foreach (CharacterAbility ability in _abilities) {
+                ExploreAbility explore = ability as ExploreAbility;
+                if (explore == null) continue;
+                if (explore.CanSeeToPart(_position, destination))
+                    return true;
+            }
+
+            return false;
         }
 
         #region Server
@@ -68,7 +79,7 @@ namespace Game.Characters {
             if (_water != 0) return;
             onCharacterDie?.Invoke(this);
         }
-        
+
         [Server]
         private void SetStartPosition() {
             GameManager manager = FindObjectOfType<GameManager>();
@@ -81,7 +92,7 @@ namespace Game.Characters {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position != null) {
-                if (card.CanSeeThisCard(_position) && !card.CanMoveToThisPart()) return;
+                if ((card.CanSeeThisCard(_position) || CanSeeThisPart(card)) && !card.CanMoveToThisPart()) return;
                 _position.LeavePart(this);
             }
 
@@ -89,7 +100,7 @@ namespace Game.Characters {
             transform.position = _position.GetNextPlayerPosition(this);
             gameManager.DoAction();
         }
-        
+
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
@@ -97,12 +108,12 @@ namespace Game.Characters {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position == null) return;
 
-            if (!card.CanSeeThisCard(_position)) return;
+            if (!(card.CanSeeThisCard(_position) || CanSeeThisPart(card))) return;
 
             card.RemoveSand(1 + RemoveExtraSand());
             gameManager.DoAction();
         }
-        
+
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
@@ -144,7 +155,7 @@ namespace Game.Characters {
         private void CmdPickUpAPart(PlaygroundCard card) {
             ServerPickUpAPart(card);
         }
-        
+
         [Command]
         private void CmdSetStartPosition() {
             SetStartPosition();
@@ -168,7 +179,7 @@ namespace Game.Characters {
         }
 
         #endregion
-        
+
         #region Client
 
         [Client]
