@@ -40,7 +40,9 @@ namespace Game {
         private PlaygroundCardData[] _playgroundCardDatas;
         private Queue<Player> _playerOrder = new Queue<Player>();
         private static int _maxSteps = 4;
-        [SyncVar] private int _sandStackReaming = 48;
+
+        [SyncVar(hook = nameof(HandleSandStack))]
+        private int _sandStackReaming = 48;
 
         private int _stromTickMark = 2;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
@@ -97,13 +99,11 @@ namespace Game {
         [Server]
         private void AddSandHandler() {
             --_sandStackReaming;
-            onDustCardSet?.Invoke(_sandStackReaming);
         }
 
         [Server]
         private void RemoveSandHandler() {
             ++_sandStackReaming;
-            onDustCardSet?.Invoke(_sandStackReaming);
         }
 
         [Server]
@@ -344,6 +344,11 @@ namespace Game {
                 PlaygroundCardData data = Resources.Load<PlaygroundCardData>(playgroundCard.GetCardName());
                 playgroundCard.SetData(data);
             }
+        }
+
+        [Client]
+        private void HandleSandStack(int oldValue, int newValue) {
+            onDustCardSet?.Invoke(newValue);
         }
 
         #endregion
