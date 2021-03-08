@@ -6,10 +6,12 @@ using Network;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Game.Cards.PlaygroundCards {
     public class PlaygroundCard : NetworkBehaviour {
         [SerializeField] private TMP_Text _sandCounterText = null;
+        [SerializeField] private GameObject _hoverMark = null;
         [SerializeField] private MeshRenderer backImage;
         [SerializeField] private MeshRenderer frontImage;
         [SerializeField] private Transform[] positionToStay;
@@ -233,6 +235,14 @@ namespace Game.Cards.PlaygroundCards {
 
             _sandCounterText.text = newDustCount.ToString();
             _sandCounterText.gameObject.SetActive(newDustCount > 2);
+        }
+
+        void OnMouseOver() {
+            _hoverMark.SetActive(true);
+        }
+
+        void OnMouseExit() {
+            _hoverMark.SetActive(false);
         }
 
         #endregion
