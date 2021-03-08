@@ -28,6 +28,7 @@ namespace Game.Cards.PlaygroundCards {
 
         public PlaygroundCardType CardType => _cardType;
         public CardDirection CardDirection => _cardDirection;
+        public int SandCount => _sandCount;
 
         protected Vector3 position;
         protected Vector3 playgroundStartPosition;
@@ -89,7 +90,7 @@ namespace Game.Cards.PlaygroundCards {
             );
             gameObject.transform.position = pos;
             SetPosition(pos);
-            
+
             for (var i = 0; i < _stayingPositionPlayer.Length; i++) {
                 if (_stayingPositionPlayer[i] == null) continue;
 
@@ -168,9 +169,12 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         [Server]
-        public bool CanMoveToThisPart(PlaygroundCard from) {
-            if (_sandCount > 1) return false;
+        public bool CanMoveToThisPart() {
+            return _sandCount <= 1;
+        }
 
+        [Server]
+        public bool CanSeeThisCard(PlaygroundCard from) {
             if (from.indexPosition.x != indexPosition.x && from.indexPosition.y != indexPosition.y) return false;
 
             if (Mathf.Abs(from.indexPosition.x - indexPosition.x) > 1 ||

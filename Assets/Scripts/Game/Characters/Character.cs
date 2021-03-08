@@ -69,7 +69,7 @@ namespace Game.Characters {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position != null) {
-                if (!card.CanMoveToThisPart(_position)) return;
+                if (card.CanSeeThisCard(_position) && !card.CanMoveToThisPart()) return;
                 _position.LeavePart(this);
             }
 
@@ -81,12 +81,11 @@ namespace Game.Characters {
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (card.IsRevealed) return;
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position == null) return;
 
-            if (!card.CanMoveToThisPart(_position)) return;
+            if (!card.CanSeeThisCard(_position)) return;
 
             card.RemoveSand(1);
             gameManager.DoAction();
@@ -164,6 +163,7 @@ namespace Game.Characters {
         public void RemoveSand(PlaygroundCard card) {
             if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!hasAuthority) return;
+            if (card.SandCount == 0) return;
 
             CmdRemoveSand(card);
         }
