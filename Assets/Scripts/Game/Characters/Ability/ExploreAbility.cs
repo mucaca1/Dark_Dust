@@ -1,4 +1,5 @@
-﻿using Game.Cards.PlaygroundCards;
+﻿using System.Collections.Generic;
+using Game.Cards.PlaygroundCards;
 using UnityEngine;
 
 namespace Game.Characters.Ability {
@@ -7,6 +8,11 @@ namespace Game.Characters.Ability {
         public bool CanSeeToPart(PlaygroundCard source, PlaygroundCard destination) {
             return Mathf.Abs(source.GetIndexPosition().x - destination.GetIndexPosition().x) == 1 &&
                    Mathf.Abs(source.GetIndexPosition().y - destination.GetIndexPosition().y) == 1;
+        }
+
+
+        public override List<Character> GetAllEnabledCharacters() {
+            return new List<Character>();
         }
     }
 }

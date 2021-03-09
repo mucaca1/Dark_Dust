@@ -31,7 +31,7 @@ namespace Game.Characters {
             CmdSetStartPosition();
         }
 
-        private int RemoveExtraSand() {
+        private int RemoveExtraSandAbility() {
             int sand = 0;
 
             foreach (CharacterAbility ability in _abilities) {
@@ -43,12 +43,22 @@ namespace Game.Characters {
             return sand;
         }
 
-        private bool CanSeeThisPart(PlaygroundCard destination) {
+        private bool CanSeeThisPartAbility(PlaygroundCard destination) {
             foreach (CharacterAbility ability in _abilities) {
                 ExploreAbility explore = ability as ExploreAbility;
                 if (explore == null) continue;
                 if (explore.CanSeeToPart(_position, destination))
                     return true;
+            }
+
+            return false;
+        }
+
+        private bool CanMoveToThisPartAbility() {
+            foreach (CharacterAbility ability in _abilities) {
+                IgnoreSandCountAbility explore = ability as IgnoreSandCountAbility;
+                if (explore == null) continue;
+                return true;
             }
 
             return false;
@@ -98,7 +108,8 @@ namespace Game.Characters {
             GameManager gameManager = FindObjectOfType<GameManager>();
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position != null) {
-                if (!(card.CanSeeThisCard(_position) || CanSeeThisPart(card))) return;
+                if (_position.SandCount > 1 || CanMoveToThisPartAbility()) return;
+                if (!(card.CanSeeThisCard(_position) || CanSeeThisPartAbility(card))) return;
                 if (!card.CanMoveToThisPart()) return;
                 _position.LeavePart(this);
             }
@@ -115,9 +126,9 @@ namespace Game.Characters {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (_position == null) return;
 
-            if (!(card.CanSeeThisCard(_position) || CanSeeThisPart(card))) return;
+            if (!(card.CanSeeThisCard(_position) || CanSeeThisPartAbility(card))) return;
 
-            card.RemoveSand(1 + RemoveExtraSand());
+            card.RemoveSand(1 + RemoveExtraSandAbility());
             gameManager.DoAction();
         }
 
@@ -179,6 +190,7 @@ namespace Game.Characters {
 
         [Client]
         public void GoToPosition(PlaygroundCard card) {
+            if (card == _position) return;
             if (card.CardType == PlaygroundCardType.Tornado) return;
             if (!hasAuthority) return;
 
