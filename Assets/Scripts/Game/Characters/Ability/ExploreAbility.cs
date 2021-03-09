@@ -9,10 +9,5 @@ namespace Game.Characters.Ability {
             return Mathf.Abs(source.GetIndexPosition().x - destination.GetIndexPosition().x) == 1 &&
                    Mathf.Abs(source.GetIndexPosition().y - destination.GetIndexPosition().y) == 1;
         }
-
-
-        public override List<Character> GetAllEnabledCharacters() {
-            return new List<Character>();
-        }
     }
 }

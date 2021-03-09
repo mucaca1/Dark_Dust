@@ -40,7 +40,7 @@ namespace Game.Characters {
             _Controller = gameObject.GetComponent<PlayerController>();
         }
 
-        private int RemoveExtraSandAbility() {
+        public int RemoveExtraSandAbility() {
             int sand = 0;
 
             foreach (CharacterAbility ability in _abilities) {
@@ -52,7 +52,7 @@ namespace Game.Characters {
             return sand;
         }
 
-        private bool CanSeeThisPartAbility(PlaygroundCard destination) {
+        public bool CanSeeThisCardAbility(PlaygroundCard destination) {
             foreach (CharacterAbility ability in _abilities) {
                 ExploreAbility explore = ability as ExploreAbility;
                 if (explore == null) continue;
@@ -63,7 +63,7 @@ namespace Game.Characters {
             return false;
         }
 
-        private bool CanMoveToThisPartAbility() {
+        public bool HasSoundIgnoreAbility() {
             foreach (CharacterAbility ability in _abilities) {
                 IgnoreSandCountAbility explore = ability as IgnoreSandCountAbility;
                 if (explore == null) continue;

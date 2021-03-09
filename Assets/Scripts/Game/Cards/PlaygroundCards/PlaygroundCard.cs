@@ -177,15 +177,15 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoMoveAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (character.Position == this) return false;
-            if (!(CanSeeThisCard(character.Position) || CanSeeExtraPart(character))) return false;
-            if (!(CanMoveToThisPart() || character.Position.CanMoveToThisPart())) return false;
+            if (!(CanSeeThisCard(character.Position) || character.CanSeeThisCardAbility(this))) return false;
+            if (!(CanMoveToThisPart() || character.Position.CanMoveToThisPart() || character.HasSoundIgnoreAbility())) return false;
 
             return true;
         }
 
         public bool CanCharacterDoRemoveSandAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
-            if (!(CanSeeThisCard(character.Position) || CanSeeExtraPart(character))) return false;
+            if (!(CanSeeThisCard(character.Position) || character.CanSeeThisCardAbility(this))) return false;
             return _sandCount > 0;
         }
 
@@ -228,18 +228,7 @@ namespace Game.Cards.PlaygroundCards {
 
             return false;
         }
-        
-        private bool CanSeeExtraPart(Character character) {
-            foreach (CharacterAbility ability in character.Abilities) {
-                ExploreAbility explore = ability as ExploreAbility;
-                if (explore == null) continue;
-                if (explore.CanSeeToPart(character.Position, this))
-                    return true;
-            }
 
-            return false;
-        }
-        
         public bool CanMoveToThisPart() {
             return _sandCount <= 1;
         }

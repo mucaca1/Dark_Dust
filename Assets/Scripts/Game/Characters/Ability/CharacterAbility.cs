@@ -7,7 +7,5 @@ namespace Game.Characters.Ability {
         private string _specialDescription = "Desc";
 
         public string SpecialDescription => _specialDescription;
-        
-        public abstract List<Character> GetAllEnabledCharacters();
     }
 }

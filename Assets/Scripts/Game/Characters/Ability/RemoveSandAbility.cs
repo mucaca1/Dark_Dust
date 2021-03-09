@@ -5,9 +5,5 @@ namespace Game.Characters.Ability {
         private int _extraSandToRemove = 1;
 
         public int ExtraSandToRemove => _extraSandToRemove;
-        
-        public override List<Character> GetAllEnabledCharacters() {
-            return new List<Character>();
-        }
     }
 }
