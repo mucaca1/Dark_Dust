@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Characters;
+using Game.Characters.Ability;
 using Mirror;
 using Network;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Game.Cards.PlaygroundCards {
     public class PlaygroundCard : NetworkBehaviour {
@@ -42,11 +44,17 @@ namespace Game.Cards.PlaygroundCards {
         private float playgroundCardSize = 1f;
         private float playgroundCardOffset = .1f;
 
+        private GameManager _gameManager = null;
+
         private Character[] _stayingPositionPlayer = new Character[5];
         public bool IsRevealed => _isRevealed;
 
         public static event Action onAddSand;
         public static event Action onRemoveSand;
+
+        private void Start() {
+            _gameManager = FindObjectOfType<GameManager>();
+        }
 
         public Vector3 GetPosition() {
             return position;
@@ -133,6 +141,108 @@ namespace Game.Cards.PlaygroundCards {
             return characters;
         }
 
+        
+        public bool CanActivePlayerDoAction(Player player) {
+            if (!player.IsYourTurn) return false;
+            
+            switch (player.Character.Controller.Action) {
+                case PlayerAction.WALK:
+                    return CanCharacterDoMoveAction(player.Character);
+                case PlayerAction.EXCAVATE:
+                    return CanCharacterExcavate(player.Character);
+                case PlayerAction.REMOVE_SAND:
+                    return CanCharacterDoRemoveSandAction(player.Character);
+                case PlayerAction.PICK_UP_A_PART:
+                    return CanCharacterPickUpAPart(player.Character);
+            }
+
+            return false;
+        }
+
+        public bool CanCharacterDoAction(Character character) {
+            switch (character.Controller.Action) {
+                case PlayerAction.WALK:
+                    return CanCharacterDoMoveAction(character);
+                case PlayerAction.EXCAVATE:
+                    return CanCharacterExcavate(character);
+                case PlayerAction.REMOVE_SAND:
+                    return CanCharacterDoRemoveSandAction(character);
+                case PlayerAction.PICK_UP_A_PART:
+                    return CanCharacterPickUpAPart(character);
+            }
+
+            return false;
+        }
+
+        public bool CanCharacterDoMoveAction(Character character) {
+            if (_cardType == PlaygroundCardType.Tornado) return false;
+            if (character.Position == this) return false;
+            if (!(CanSeeThisCard(character.Position) || CanSeeExtraPart(character))) return false;
+            if (!(CanMoveToThisPart() || character.Position.CanMoveToThisPart())) return false;
+
+            return true;
+        }
+
+        public bool CanCharacterDoRemoveSandAction(Character character) {
+            if (_cardType == PlaygroundCardType.Tornado) return false;
+            if (!(CanSeeThisCard(character.Position) || CanSeeExtraPart(character))) return false;
+            return _sandCount > 0;
+        }
+
+        public bool CanCharacterExcavate(Character character) {
+            if (_cardType == PlaygroundCardType.Tornado) return false;
+            return IsCharacterHere(character) && !_isRevealed;
+        }
+
+        public bool CanCharacterPickUpAPart(Character character) {
+            if (_cardType == PlaygroundCardType.Tornado) return false;
+            PlaygroundCardType[] type = new[] {
+                PlaygroundCardType.Compass, PlaygroundCardType.Engine, PlaygroundCardType.Helm,
+                PlaygroundCardType.Propeller
+            };
+
+            foreach (PlaygroundCardType itemType in type) {
+                PlaygroundCard horizontalCard = null;
+                PlaygroundCard verticalCard = null;
+                foreach (PlaygroundCard card in _gameManager.PlaygroundCards) {
+                    if (!card.IsRevealed) continue;
+                    if (card.CardType != itemType) continue;
+                    if (card.CardDirection == CardDirection.Horizontal) {
+                        horizontalCard = card;
+                    }
+                    else if (card.CardDirection == CardDirection.Vertical) {
+                        verticalCard = card;
+                    }
+
+                    if (horizontalCard != null && verticalCard != null) break;
+                }
+
+                if (horizontalCard == null || verticalCard == null) continue;
+                if (horizontalCard.GetIndexPosition().y == GetIndexPosition().y &&
+                    verticalCard.GetIndexPosition().x == GetIndexPosition().x) {
+                    if (!_gameManager.IsItemTaked(itemType.GetHashCode())) {
+                        return character.Position == this;
+                    }
+                }
+            }
+
+            return false;
+        }
+        
+        private bool CanSeeExtraPart(Character character) {
+            foreach (CharacterAbility ability in character.Abilities) {
+                ExploreAbility explore = ability as ExploreAbility;
+                if (explore == null) continue;
+                if (explore.CanSeeToPart(character.Position, this))
+                    return true;
+            }
+
+            return false;
+        }
+        
+        public bool CanMoveToThisPart() {
+            return _sandCount <= 1;
+        }
 
         #region Server
 
@@ -172,12 +282,6 @@ namespace Game.Cards.PlaygroundCards {
             }
         }
 
-        [Server]
-        public bool CanMoveToThisPart() {
-            return _sandCount <= 1;
-        }
-
-        [Server]
         public bool CanSeeThisCard(PlaygroundCard from) {
             if (from.indexPosition.x != indexPosition.x && from.indexPosition.y != indexPosition.y) return false;
 
@@ -237,10 +341,17 @@ namespace Game.Cards.PlaygroundCards {
             _sandCounterText.gameObject.SetActive(newDustCount > 2);
         }
 
+        [ClientCallback]
         void OnMouseOver() {
+            if (_cardType == PlaygroundCardType.Tornado) return;
+            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Player>())
+                ? Color.green
+                : Color.red;
+            _hoverMark.GetComponentInChildren<Image>().color = color;
             _hoverMark.SetActive(true);
         }
 
+        [ClientCallback]
         void OnMouseExit() {
             _hoverMark.SetActive(false);
         }

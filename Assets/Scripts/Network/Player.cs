@@ -15,7 +15,9 @@ namespace Network {
         [field: SyncVar] public string PlayerName { get; set; } = "PlayerName";
 
         [field: SyncVar] public Color PlayerColor { get; set; } = Color.black;
-        public Character Character { get; set; } = null;
+        public Character Character { get; private set; } = null;
+
+        private PlayerController _controller = null;
 
         public event Action<bool, string> onChangeActivePlayer;
 

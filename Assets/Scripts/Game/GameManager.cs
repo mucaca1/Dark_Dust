@@ -51,6 +51,8 @@ namespace Game {
 
         public List<PlaygroundCard> PlaygroundCards => _playgroundCards;
 
+        public Player ActivePlayer => _activePlayer;
+
         public event Action<int> onTakedItemsIncrease;
         public event Action<int> onStromTickMarkChanged;
         public event Action<int> onDustCardSet;
@@ -78,7 +80,7 @@ namespace Game {
             return playGroundStartTransform.position;
         }
 
-        private bool IsItemTaked(int index) {
+        public bool IsItemTaked(int index) {
             return (_takedItems & (1 << index)) != 0;
         }
 
@@ -170,7 +172,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("Explorer")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -272,7 +274,7 @@ namespace Game {
         }
 
         [Server]
-        public bool TryPickUpAPart(PlaygroundCard destinationCard) {
+        public void PickUpAPart(PlaygroundCard destinationCard) {
             PlaygroundCardType[] type = new[] {
                 PlaygroundCardType.Compass, PlaygroundCardType.Engine, PlaygroundCardType.Helm,
                 PlaygroundCardType.Propeller
@@ -299,12 +301,9 @@ namespace Game {
                     verticalCard.GetIndexPosition().x == destinationCard.GetIndexPosition().x) {
                     if (!IsItemTaked(itemType.GetHashCode())) {
                         TakeItem(itemType.GetHashCode());
-                        return true;
                     }
                 }
             }
-
-            return false;
         }
 
         [Server]

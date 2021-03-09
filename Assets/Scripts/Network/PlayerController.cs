@@ -12,6 +12,8 @@ namespace Network {
 
         private Camera _mainCamera;
 
+        public PlayerAction Action => _action;
+
         private void Start() {
             _mainCamera = Camera.main;
         }
@@ -24,20 +26,7 @@ namespace Network {
             if (hit.collider.TryGetComponent<PlaygroundCard>(out PlaygroundCard card)) {
                 Character character = GetComponent<Character>();
 
-                switch (_action) {
-                    case PlayerAction.WALK:
-                        character.GoToPosition(card);
-                        break;
-                    case PlayerAction.EXCAVATE:
-                        character.Excavate(card);
-                        break;
-                    case PlayerAction.REMOVE_SAND:
-                        character.RemoveSand(card);
-                        break;
-                    case PlayerAction.PICK_UP_A_PART:
-                        character.PickUpAPart(card);
-                        break;
-                }
+                character.DoAction(_action, card);
             }
         }
 

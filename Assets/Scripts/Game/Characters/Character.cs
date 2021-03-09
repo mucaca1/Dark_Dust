@@ -16,10 +16,14 @@ namespace Game.Characters {
 
         private PlaygroundCard _position = null;
 
+        private PlayerController _Controller = null;
+
         private List<CharacterAbility> _abilities = new List<CharacterAbility>();
 
         public event Action<int, int> onWaterValueChanged;
         public event Action<Character> onCharacterDie;
+
+        public List<CharacterAbility> Abilities => _abilities;
 
         public int MAXWater => _maxWater;
 
@@ -27,8 +31,13 @@ namespace Game.Characters {
 
         public string AbilityDescription => _abilityDescription;
 
+        public PlaygroundCard Position => _position;
+
+        public PlayerController Controller => _Controller;
+
         public override void OnStartAuthority() {
             CmdSetStartPosition();
+            _Controller = gameObject.GetComponent<PlayerController>();
         }
 
         private int RemoveExtraSandAbility() {
@@ -71,7 +80,7 @@ namespace Game.Characters {
             _characterName = data.characterName;
             _maxWater = data.water;
             _abilityDescription = data.abilityDescription;
-            
+
             foreach (string dataAbilityName in data.abilityNames) {
                 CharacterAbility ability = Resources.Load<CharacterAbility>("Ability/" + dataAbilityName);
                 CharacterAbility gameObject = Instantiate(ability, Vector3.zero, Quaternion.identity);
@@ -105,73 +114,49 @@ namespace Game.Characters {
 
         [Server]
         private void SetNewPosition(PlaygroundCard card) {
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (_position != null) {
-                if (_position.SandCount > 1 || CanMoveToThisPartAbility()) return;
-                if (!(card.CanSeeThisCard(_position) || CanSeeThisPartAbility(card))) return;
-                if (!card.CanMoveToThisPart()) return;
+            if (_position != null)
                 _position.LeavePart(this);
-            }
-
             _position = card;
             transform.position = _position.GetNextPlayerPosition(this);
-            gameManager.DoAction();
         }
 
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (_position == null) return;
-
-            if (!(card.CanSeeThisCard(_position) || CanSeeThisPartAbility(card))) return;
-
             card.RemoveSand(1 + RemoveExtraSandAbility());
-            gameManager.DoAction();
         }
 
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (card.IsRevealed) return;
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (_position == null) return;
-
-            if (!card.IsCharacterHere(this)) return;
-
             card.ExcavateCard();
-
-            gameManager.DoAction();
         }
 
         [Server]
         private void ServerPickUpAPart(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!card.IsRevealed) return;
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            gameManager.PickUpAPart(card);
+        }
+
+        [Server]
+        private void ServerDoAction(PlayerAction action, PlaygroundCard card) {
+            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
+            if (!card.CanCharacterDoAction(this)) return;
+            switch (action) {
+                case PlayerAction.WALK:
+                    SetNewPosition(card);
+                    break;
+                case PlayerAction.EXCAVATE:
+                    ServerExcavate(card);
+                    break;
+                case PlayerAction.REMOVE_SAND:
+                    ServerRemoveSand(card);
+                    break;
+                case PlayerAction.PICK_UP_A_PART:
+                    ServerPickUpAPart(card);
+                    break;
+            }
 
             GameManager gameManager = FindObjectOfType<GameManager>();
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (!card.IsCharacterHere(this)) return;
-            if (gameManager.TryPickUpAPart(card))
-                gameManager.DoAction();
-        }
-
-        [Command]
-        private void CmdRemoveSand(PlaygroundCard card) {
-            ServerRemoveSand(card);
-        }
-
-        [Command]
-        private void CmdExcavate(PlaygroundCard card) {
-            ServerExcavate(card);
-        }
-
-        [Command]
-        private void CmdPickUpAPart(PlaygroundCard card) {
-            ServerPickUpAPart(card);
+            gameManager.DoAction();
         }
 
         [Command]
@@ -180,8 +165,8 @@ namespace Game.Characters {
         }
 
         [Command]
-        public void CmdGoToPosition(PlaygroundCard card) {
-            SetNewPosition(card);
+        private void CmdDoAction(PlayerAction action, PlaygroundCard card) {
+            ServerDoAction(action, card);
         }
 
         #endregion
@@ -189,39 +174,11 @@ namespace Game.Characters {
         #region Client
 
         [Client]
-        public void GoToPosition(PlaygroundCard card) {
-            if (card == _position) return;
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!hasAuthority) return;
-
-            CmdGoToPosition(card);
-        }
-
-        #endregion
-
-        #region Client
-
-        [Client]
-        public void RemoveSand(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!hasAuthority) return;
-            if (card.SandCount == 0) return;
-
-            CmdRemoveSand(card);
-        }
-
-        [Client]
-        public void Excavate(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (card.IsRevealed) return;
-            CmdExcavate(card);
-        }
-
-        [Client]
-        public void PickUpAPart(PlaygroundCard card) {
-            if (card.CardType == PlaygroundCardType.Tornado) return;
-            if (!card.IsRevealed) return;
-            CmdPickUpAPart(card);
+        public void DoAction(PlayerAction action, PlaygroundCard card) {
+            Player player = connectionToClient.identity.GetComponent<Player>();
+            if (card.CanActivePlayerDoAction(connectionToClient.identity.GetComponent<Player>())) {
+                CmdDoAction(action, card);
+            }
         }
 
         #endregion
