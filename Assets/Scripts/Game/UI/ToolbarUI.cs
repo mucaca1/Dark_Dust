@@ -11,6 +11,8 @@ namespace Game.UI {
         [SerializeField] private GameObject _activePlayerToolbar = null;
         [SerializeField] private TMP_Text _activePlayerName = null;
 
+        [SerializeField] private TMP_Text _stepsAvaibleText = null;
+
         [SerializeField] private Button walkButton = null;
         [SerializeField] private Button excavateButton = null;
         [SerializeField] private Button removeSandButton = null;
@@ -33,10 +35,13 @@ namespace Game.UI {
                     HandleSwapPlayer(_player.IsYourTurn, _player.PlayerName);
                 }
             }
+
+            GameManager.onAvaibleStepsChanged += HandleActionCounter;
         }
 
         private void OnDestroy() {
             _player.onChangeActivePlayer -= HandleSwapPlayer;
+            GameManager.onAvaibleStepsChanged -= HandleActionCounter;
         }
 
         private void WalkAction() {
@@ -67,6 +72,10 @@ namespace Game.UI {
                 pickUpAPartButton.interactable = true;
                 WalkAction();
             }
+        }
+
+        private void HandleActionCounter(int count) {
+            _stepsAvaibleText.text = $"Actions: {count}";
         }
     }
 }

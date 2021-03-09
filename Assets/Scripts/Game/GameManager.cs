@@ -58,6 +58,8 @@ namespace Game {
         public event Action<int> onDustCardSet;
         public event Action<int> onTornadoCardChanged;
 
+        public static event Action<int> onAvaibleStepsChanged;
+
         private void Start() {
             if (isServer) {
                 PlaygroundCard.onAddSand += AddSandHandler;
@@ -234,13 +236,14 @@ namespace Game {
 
         [Server]
         public void DoAction() {
-            --_stepsRemaning;
+            onAvaibleStepsChanged?.Invoke(--_stepsRemaning);
             if (_stepsRemaning != 0) return;
             Debug.Log($"Player {_activePlayer.PlayerName}: End his turn.");
             _activePlayer.EndTurn();
             _playerOrder.Enqueue(_activePlayer);
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
+            onAvaibleStepsChanged?.Invoke(_stepsRemaning);
 
             StartCoroutine(DesertTurn());
 
