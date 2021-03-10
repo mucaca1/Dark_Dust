@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Game.Characters.Ability {
     public class AbilityManager {
-
         public int RemoveExtraSandAbility(Character character) {
             if (character.Ability == AbilityType.Archeologist) {
                 return 1;
@@ -37,6 +36,11 @@ namespace Game.Characters.Ability {
 
         public bool CanUsePlaygroundCardAsPlayer(Character character) {
             return character.Ability == AbilityType.WaterCarrier;
+        }
+
+        public bool CanPickUpWater(Character character, PlaygroundCard destination) {
+            return (character.Ability == AbilityType.WaterCarrier && character.Position == destination &&
+                    destination.CardType == PlaygroundCardType.Water);
         }
     }
 }

@@ -142,7 +142,7 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoAction(PlayerAction action, Character character) {
             switch (action) {
                 case PlayerAction.WALK:
-                    return CanCharacterDoMoveAction(character);
+                    return CanCharacterDoMoveAction(character, character.GetComponent<PlayerController>().SpecialAction);
                 case PlayerAction.EXCAVATE:
                     return CanCharacterExcavate(character);
                 case PlayerAction.REMOVE_SAND:
@@ -154,9 +154,15 @@ namespace Game.Cards.PlaygroundCards {
             return false;
         }
 
-        public bool CanCharacterDoMoveAction(Character character) {
+        public bool CanCharacterDoMoveAction(Character character, bool useSpecialAction) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
-            if (character.Position == this) return false;
+            if (character.Position == this) {
+                if (useSpecialAction) {
+                    return GameManager.AbilityManager.CanPickUpWater(character, this);
+                }
+
+                return false;
+            }
             if (!(CanSeeThisCard(character.Position) ||
                   GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
             if (!(CanMoveToThisPart() || GameManager.AbilityManager.CanMoveToCard(character)) &&

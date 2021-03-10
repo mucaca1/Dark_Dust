@@ -16,6 +16,8 @@ namespace Network {
 
         public PlayerAction Action => _action;
 
+        public bool SpecialAction => _specialAction;
+
         private void Start() {
             _mainCamera = Camera.main;
         }
