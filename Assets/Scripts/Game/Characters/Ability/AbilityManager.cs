@@ -34,5 +34,9 @@ namespace Game.Characters.Ability {
 
             return false;
         }
+
+        public bool CanUsePlaygroundCardAsPlayer(Character character) {
+            return character.Ability == AbilityType.WaterCarrier;
+        }
     }
 }

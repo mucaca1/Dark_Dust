@@ -417,6 +417,18 @@ namespace Game {
         [Client]
         public void ShowSpecialActionDialogue(Character character, PlaygroundCard source) {
             _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
+
+            if (abilityManager.CanUsePlaygroundCardAsPlayer(character)) {
+                SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                playerSelect.transform.localScale = Vector3.one;
+                SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                value.gameObject = source.gameObject;
+                value.itemName = source.CardType.ToString();
+                value.itemColor = Color.black;
+                playerSelect.Initialize(value);
+            }
+            
             foreach (Character ch in FindObjectsOfType<Character>()) {
                 if (ch == character) continue;
                 if (ch.Position != source) continue;
@@ -424,7 +436,11 @@ namespace Game {
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
                 playerSelect.transform.localScale = Vector3.one;
-                playerSelect.Initialize(ch.GetComponent<Player>());
+                SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                value.gameObject = ch.GetComponent<Player>().gameObject;
+                value.itemName = ch.GetComponent<Player>().PlayerName;
+                value.itemColor = ch.GetComponent<Player>().PlayerColor;
+                playerSelect.Initialize(value);
             }
 
             _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
