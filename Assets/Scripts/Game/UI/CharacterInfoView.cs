@@ -18,12 +18,11 @@ namespace Game.UI {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
             }
 
-            if (_player != null && _player.Character != null && characterName.text == "Character name") {
-                Character character = _player.Character;
-                characterName.text = character.CharacterName;
-                waterCapacity.text = $"Water capacity: {character.MAXWater}";
-                abilityDescription.text = character.AbilityDescription;
-            }
+            // if (_player != null && _player.Character != null && characterName.text == "Character name") {
+            //     Character character = _player.Character;
+            //     characterName.text = character.CharacterName;
+            //     waterCapacity.text = $"Water capacity: {character.MAXWater}";
+            // }
         }
     }
 }

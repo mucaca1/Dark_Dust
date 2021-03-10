@@ -6,8 +6,7 @@ namespace Game.Cards.PlayCards.Tornado {
     public class StormPicksUp : TornadoCard {
         [Server]
         public override void DoAction() {
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            gameManager.StormTickUp();
+            GameManager.Instance.StormTickUp();
             Debug.Log("Storm Pick Up");
         }
     }

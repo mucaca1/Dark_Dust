@@ -1,106 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using Game.Cards.PlaygroundCards;
-using Game.Characters.Ability;
 using Mirror;
 using Network;
 using UnityEngine;
 
 namespace Game.Characters {
     public class Character : NetworkBehaviour {
+        [SerializeField] private Renderer renderer;
         [SyncVar] private string _characterName;
         [SyncVar] private int _water;
-        private string _abilityDescription;
 
         [SyncVar] private int _maxWater;
 
-        private PlaygroundCard _position = null;
+        [SyncVar(hook = nameof(HandleIndexPosition))] [SerializeField]
+        private Vector2 _positionIndex = Vector2.zero;
 
-        private PlayerController _Controller = null;
+        [SerializeField] private PlaygroundCard _position = null;
 
-        private List<CharacterAbility> _abilities = new List<CharacterAbility>();
-
-        public event Action<int, int> onWaterValueChanged;
+        public static event Action<Character, int, int> onWaterValueChanged;
         public event Action<Character> onCharacterDie;
-
-        public List<CharacterAbility> Abilities => _abilities;
 
         public int MAXWater => _maxWater;
 
-        public string CharacterName => _characterName;
+        public int Water => _water;
 
-        public string AbilityDescription => _abilityDescription;
+        public string CharacterName => _characterName;
 
         public PlaygroundCard Position => _position;
 
-        public PlayerController Controller => _Controller;
-
-        public override void OnStartAuthority() {
-            CmdSetStartPosition();
-            _Controller = gameObject.GetComponent<PlayerController>();
+        public override void OnStartClient() {
+            GameManager.onPlaygroundLoaded += HandlePlaygroundLoaded;
         }
 
-        public int RemoveExtraSandAbility() {
-            int sand = 0;
-
-            foreach (CharacterAbility ability in _abilities) {
-                RemoveSandAbility rms = ability as RemoveSandAbility;
-                if (rms == null) continue;
-                sand += rms.ExtraSandToRemove;
-            }
-
-            return sand;
+        public override void OnStopClient() {
+            GameManager.onPlaygroundLoaded -= HandlePlaygroundLoaded;
         }
 
-        public bool CanSeeThisCardAbility(PlaygroundCard destination) {
-            foreach (CharacterAbility ability in _abilities) {
-                ExploreAbility explore = ability as ExploreAbility;
-                if (explore == null) continue;
-                if (explore.CanSeeToPart(_position, destination))
-                    return true;
+        private void Start() {
+            if (isServer) {
+                // Initialize character data
+                CharacterData data = GameManager.Instance.GetCharacterData();
+                _characterName = data.characterName;
+                _maxWater = data.maxWater;
+                SetWater(data.startWater);
+                SetStartPosition();
             }
 
-            return false;
-        }
-
-        public bool HasSoundIgnoreAbility() {
-            foreach (CharacterAbility ability in _abilities) {
-                IgnoreSandCountAbility explore = ability as IgnoreSandCountAbility;
-                if (explore == null) continue;
-                return true;
+            if (isClient) {
+                renderer.material.color = gameObject.GetComponent<Player>().PlayerColor;
             }
-
-            return false;
         }
 
         #region Server
 
         [Server]
-        public void InitializePlayer(CharacterData data) {
-            _characterName = data.characterName;
-            _maxWater = data.water;
-            _abilityDescription = data.abilityDescription;
-
-            foreach (string dataAbilityName in data.abilityNames) {
-                CharacterAbility ability = Resources.Load<CharacterAbility>("Ability/" + dataAbilityName);
-                CharacterAbility gameObject = Instantiate(ability, Vector3.zero, Quaternion.identity);
-                _abilities.Add(gameObject);
-            }
-
-            _water = _maxWater;
-            onWaterValueChanged?.Invoke(_water, _maxWater);
-        }
-
-        [Server]
         public void SetWater(int water) {
             _water = Mathf.Max(_maxWater, _water + water);
-            onWaterValueChanged?.Invoke(_water, _maxWater);
+            onWaterValueChanged?.Invoke(this, _water, _maxWater);
         }
 
         [Server]
         public void DrinkWater() {
             _water = Mathf.Max(0, _water - 1);
-            onWaterValueChanged?.Invoke(_water, _maxWater);
+            onWaterValueChanged?.Invoke(this, _water, _maxWater);
             if (_water != 0) return;
             onCharacterDie?.Invoke(this);
         }
@@ -109,20 +71,22 @@ namespace Game.Characters {
         private void SetStartPosition() {
             GameManager manager = FindObjectOfType<GameManager>();
             _position = manager.GetStartCard();
+            _positionIndex = _position.GetIndexPosition();
             transform.position = _position.GetNextPlayerPosition(this);
         }
 
         [Server]
-        private void SetNewPosition(PlaygroundCard card) {
+        public void SetNewPosition(PlaygroundCard card) {
             if (_position != null)
                 _position.LeavePart(this);
             _position = card;
+            _positionIndex = _position.GetIndexPosition();
             transform.position = _position.GetNextPlayerPosition(this);
         }
 
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
-            card.RemoveSand(1 + RemoveExtraSandAbility());
+            card.RemoveSand(1);
         }
 
         [Server]
@@ -132,14 +96,13 @@ namespace Game.Characters {
 
         [Server]
         private void ServerPickUpAPart(PlaygroundCard card) {
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            gameManager.PickUpAPart(card);
+            GameManager.Instance.PickUpAPart(card);
         }
 
         [Server]
         private void ServerDoAction(PlayerAction action, PlaygroundCard card) {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
-            if (!card.CanCharacterDoAction(this)) return;
+            if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
                 case PlayerAction.WALK:
                     SetNewPosition(card);
@@ -155,13 +118,7 @@ namespace Game.Characters {
                     break;
             }
 
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            gameManager.DoAction();
-        }
-
-        [Command]
-        private void CmdSetStartPosition() {
-            SetStartPosition();
+            GameManager.Instance.DoAction();
         }
 
         [Command]
@@ -174,11 +131,22 @@ namespace Game.Characters {
         #region Client
 
         [Client]
-        public void DoAction(PlayerAction action, PlaygroundCard card) {
-            Player player = connectionToClient.identity.GetComponent<Player>();
-            if (card.CanActivePlayerDoAction(connectionToClient.identity.GetComponent<Player>())) {
+        public void HandlePlaygroundLoaded() {
+            _position = GameManager.Instance.GetPlaygroundCardFromIndex(_positionIndex);
+        }
+
+        [Client]
+        public void DoAction(PlayerAction action, PlaygroundCard card, bool specialAction) {
+            if (!hasAuthority) return;
+            if (!GetComponent<Player>().IsYourTurn) return;
+            if (card.CanActivePlayerDoAction(this)) {
                 CmdDoAction(action, card);
             }
+        }
+
+        [Client]
+        public void HandleIndexPosition(Vector2 oldIndexPosition, Vector2 newIndexPosition) {
+            _position = GameManager.Instance.GetPlaygroundCardFromIndex(newIndexPosition);
         }
 
         #endregion

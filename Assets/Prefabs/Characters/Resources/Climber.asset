@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Climber
   water: 4
-  abilityNames: []
+  abilityNames:
+  - IgnoreSandCountAbility
   abilityDescription: "The Climber can move to blocked tiles (tiles with 2 or more
     Sand markers on them). He may also take one other player with him whenever he
     moves. Pawns on the Climber\u2019s tile are never buried and can leave the tile

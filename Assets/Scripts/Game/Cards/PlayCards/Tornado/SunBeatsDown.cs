@@ -9,8 +9,8 @@ namespace Game.Cards.PlayCards.Tornado {
     public class SunBeatsDown : TornadoCard {
         [Server]
         public override void DoAction() {
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            foreach (PlaygroundCard card in gameManager.PlaygroundCards) {
+            
+            foreach (PlaygroundCard card in GameManager.Instance.PlaygroundCards) {
                 List<Character> charactersOnCard = card.GetCharacters();
                 if (charactersOnCard.Count == 0) continue;
                 

@@ -1,5 +1,4 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using Network;
 using TMPro;
 using UnityEngine;
@@ -19,12 +18,14 @@ namespace Game.UI {
         [SerializeField] private Button pickUpAPartButton = null;
 
         private Player _player = null;
+        private PlayerController _controller = null;
 
         private void Start() {
             walkButton.onClick.AddListener(WalkAction);
             excavateButton.onClick.AddListener(ExcavateAction);
             removeSandButton.onClick.AddListener(RemoveSandAction);
             pickUpAPartButton.onClick.AddListener(PickUpAPartAction);
+            GameManager.onAvaibleStepsChanged += HandleActionCounter;
         }
 
         private void Update() {
@@ -32,32 +33,37 @@ namespace Game.UI {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
                 if (_player != null) {
                     _player.onChangeActivePlayer += HandleSwapPlayer;
-                    HandleSwapPlayer(_player.IsYourTurn, _player.PlayerName);
+                    _controller = _player.GetComponent<PlayerController>();
+                    HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
                 }
             }
-
-            GameManager.onAvaibleStepsChanged += HandleActionCounter;
         }
 
         private void OnDestroy() {
             _player.onChangeActivePlayer -= HandleSwapPlayer;
             GameManager.onAvaibleStepsChanged -= HandleActionCounter;
+
+            walkButton.onClick.RemoveListener(WalkAction);
+            excavateButton.onClick.RemoveListener(ExcavateAction);
+            removeSandButton.onClick.RemoveListener(RemoveSandAction);
+            pickUpAPartButton.onClick.RemoveListener(PickUpAPartAction);
         }
 
         private void WalkAction() {
-            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.WALK);
+            if (_controller != null)
+                _controller.SetPlayerAction(PlayerAction.WALK);
         }
 
         private void ExcavateAction() {
-            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.EXCAVATE);
+            _controller.SetPlayerAction(PlayerAction.EXCAVATE);
         }
 
         private void RemoveSandAction() {
-            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.REMOVE_SAND);
+            _controller.SetPlayerAction(PlayerAction.REMOVE_SAND);
         }
 
         private void PickUpAPartAction() {
-            _player.Character.gameObject.GetComponent<PlayerController>().SetPlayerAction(PlayerAction.PICK_UP_A_PART);
+            _controller.SetPlayerAction(PlayerAction.PICK_UP_A_PART);
         }
 
         private void HandleSwapPlayer(bool yourTurn, string playerName) {

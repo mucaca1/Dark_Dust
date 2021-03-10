@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Characters;
-using Game.Characters.Ability;
 using Mirror;
 using Network;
-using NUnit.Framework;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Game.Cards.PlaygroundCards {
@@ -32,29 +29,23 @@ namespace Game.Cards.PlaygroundCards {
         private PlaygroundCardType _cardType;
         private CardDirection _cardDirection;
 
+        [SyncVar] protected Vector3 position;
+        protected Vector3 playgroundStartPosition;
+        [SyncVar] protected Vector2 indexPosition;
+
         public PlaygroundCardType CardType => _cardType;
         public CardDirection CardDirection => _cardDirection;
         public int SandCount => _sandCount;
 
-        protected Vector3 position;
-        protected Vector3 playgroundStartPosition;
-        protected Vector2 indexPosition;
-
         protected float playgroundCardOffsetY = 0f;
         private float playgroundCardSize = 1f;
         private float playgroundCardOffset = .1f;
-
-        private GameManager _gameManager = null;
 
         private Character[] _stayingPositionPlayer = new Character[5];
         public bool IsRevealed => _isRevealed;
 
         public static event Action onAddSand;
         public static event Action onRemoveSand;
-
-        private void Start() {
-            _gameManager = FindObjectOfType<GameManager>();
-        }
 
         public Vector3 GetPosition() {
             return position;
@@ -141,26 +132,26 @@ namespace Game.Cards.PlaygroundCards {
             return characters;
         }
 
-        
-        public bool CanActivePlayerDoAction(Player player) {
-            if (!player.IsYourTurn) return false;
-            
-            switch (player.Character.Controller.Action) {
+
+        public bool CanActivePlayerDoAction(Character character) {
+            if (!character.gameObject.GetComponent<Player>().IsYourTurn) return false;
+
+            switch (character.GetComponent<PlayerController>().Action) {
                 case PlayerAction.WALK:
-                    return CanCharacterDoMoveAction(player.Character);
+                    return CanCharacterDoMoveAction(character);
                 case PlayerAction.EXCAVATE:
-                    return CanCharacterExcavate(player.Character);
+                    return CanCharacterExcavate(character);
                 case PlayerAction.REMOVE_SAND:
-                    return CanCharacterDoRemoveSandAction(player.Character);
+                    return CanCharacterDoRemoveSandAction(character);
                 case PlayerAction.PICK_UP_A_PART:
-                    return CanCharacterPickUpAPart(player.Character);
+                    return CanCharacterPickUpAPart(character);
             }
 
             return false;
         }
 
-        public bool CanCharacterDoAction(Character character) {
-            switch (character.Controller.Action) {
+        public bool CanCharacterDoAction(PlayerAction action, Character character) {
+            switch (action) {
                 case PlayerAction.WALK:
                     return CanCharacterDoMoveAction(character);
                 case PlayerAction.EXCAVATE:
@@ -177,21 +168,21 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoMoveAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (character.Position == this) return false;
-            if (!(CanSeeThisCard(character.Position) || character.CanSeeThisCardAbility(this))) return false;
-            if (!(CanMoveToThisPart() || character.Position.CanMoveToThisPart() || character.HasSoundIgnoreAbility())) return false;
+            if (!CanSeeThisCard(character.Position)) return false;
+            if (!(CanMoveToThisPart() && character.Position.CanMoveToThisPart())) return false;
 
             return true;
         }
 
         public bool CanCharacterDoRemoveSandAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
-            if (!(CanSeeThisCard(character.Position) || character.CanSeeThisCardAbility(this))) return false;
+            if (!CanSeeThisCard(character.Position)) return false;
             return _sandCount > 0;
         }
 
         public bool CanCharacterExcavate(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
-            return IsCharacterHere(character) && !_isRevealed;
+            return IsCharacterHere(character) && !_isRevealed && _sandCount == 0;
         }
 
         public bool CanCharacterPickUpAPart(Character character) {
@@ -204,7 +195,7 @@ namespace Game.Cards.PlaygroundCards {
             foreach (PlaygroundCardType itemType in type) {
                 PlaygroundCard horizontalCard = null;
                 PlaygroundCard verticalCard = null;
-                foreach (PlaygroundCard card in _gameManager.PlaygroundCards) {
+                foreach (PlaygroundCard card in GameManager.Instance.PlaygroundCards) {
                     if (!card.IsRevealed) continue;
                     if (card.CardType != itemType) continue;
                     if (card.CardDirection == CardDirection.Horizontal) {
@@ -220,7 +211,7 @@ namespace Game.Cards.PlaygroundCards {
                 if (horizontalCard == null || verticalCard == null) continue;
                 if (horizontalCard.GetIndexPosition().y == GetIndexPosition().y &&
                     verticalCard.GetIndexPosition().x == GetIndexPosition().x) {
-                    if (!_gameManager.IsItemTaked(itemType.GetHashCode())) {
+                    if (!GameManager.Instance.IsItemTaked(itemType.GetHashCode())) {
                         return character.Position == this;
                     }
                 }
@@ -240,15 +231,9 @@ namespace Game.Cards.PlaygroundCards {
             _isRevealed = true;
         }
 
-        [Server]
-        public bool IsCharacterHere(Character character) {
-            for (int i = 0; i < _stayingPositionPlayer.Length; i++) {
-                if (_stayingPositionPlayer[i] == character) {
-                    return true;
-                }
-            }
 
-            return false;
+        public bool IsCharacterHere(Character character) {
+            return character.Position == this;
         }
 
         [Server]
@@ -314,7 +299,6 @@ namespace Game.Cards.PlaygroundCards {
         [Client]
         private void HandleSandCount(int oldDustCount, int newDustCount) {
             if (newDustCount == 1) {
-                GameManager manager = FindObjectOfType<GameManager>();
                 GameObject dust = Instantiate(dustCardPrefab.gameObject, sandSpawnerReference.position,
                     Quaternion.identity);
                 // Refactor append as child
@@ -333,7 +317,7 @@ namespace Game.Cards.PlaygroundCards {
         [ClientCallback]
         void OnMouseOver() {
             if (_cardType == PlaygroundCardType.Tornado) return;
-            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Player>())
+            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Character>())
                 ? Color.green
                 : Color.red;
             _hoverMark.GetComponentInChildren<Image>().color = color;

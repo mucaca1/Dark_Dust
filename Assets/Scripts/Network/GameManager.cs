@@ -26,7 +26,11 @@ namespace Game {
 
         private Player _activePlayer = null;
 
-        [SyncVar] private int _stepsRemaning = 4;
+        [SyncVar] private string _activePlayerName = "";
+
+        [SyncVar(hook = nameof(HandleStepCounter))]
+        private int _stepsRemaning = 4;
+
         [SyncVar] private int _takedItems = 0;
         [SyncVar] private int _takedItemsCount = 0;
         [SerializeField] private Transform playGroundStartTransform = null;
@@ -53,12 +57,33 @@ namespace Game {
 
         public Player ActivePlayer => _activePlayer;
 
+        public string ActivePlayerName => _activePlayerName;
+
         public event Action<int> onTakedItemsIncrease;
         public event Action<int> onStromTickMarkChanged;
         public event Action<int> onDustCardSet;
         public event Action<int> onTornadoCardChanged;
 
         public static event Action<int> onAvaibleStepsChanged;
+        public static event Action onPlaygroundLoaded;
+
+        public static event Action onDustTurn;
+        
+        private static GameManager _gameManager;
+
+        public static GameManager Instance {
+            get { return _gameManager; }
+        }
+
+
+        private void Awake() {
+            if (_gameManager != null && _gameManager != this) {
+                Destroy(this.gameObject);
+            }
+            else {
+                _gameManager = this;
+            }
+        }
 
         private void Start() {
             if (isServer) {
@@ -75,6 +100,7 @@ namespace Game {
 
             if (isClient) {
                 LoadPlayground();
+                onPlaygroundLoaded?.Invoke();
             }
         }
 
@@ -174,7 +200,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("Explorer")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -223,6 +249,7 @@ namespace Game {
             if (_activePlayer == null) {
                 _activePlayer = _playerOrder.Dequeue();
                 _activePlayer.StartTurn();
+                _activePlayerName = _activePlayer.PlayerName;
             }
         }
 
@@ -236,18 +263,22 @@ namespace Game {
 
         [Server]
         public void DoAction() {
-            onAvaibleStepsChanged?.Invoke(--_stepsRemaning);
+            --_stepsRemaning;
             if (_stepsRemaning != 0) return;
             Debug.Log($"Player {_activePlayer.PlayerName}: End his turn.");
             _activePlayer.EndTurn();
             _playerOrder.Enqueue(_activePlayer);
+
+            onDustTurn?.Invoke();
+            StartCoroutine(DesertTurn());
+        }
+
+        [Server]
+        private void StartNewTurn() {
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
-            onAvaibleStepsChanged?.Invoke(_stepsRemaning);
-
-            StartCoroutine(DesertTurn());
-
             _activePlayer.StartTurn();
+            _activePlayerName = _activePlayer.PlayerName;
         }
 
         [Server]
@@ -269,6 +300,8 @@ namespace Game {
                 Destroy(card);
                 yield return new WaitForSeconds(1);
             }
+
+            StartNewTurn();
         }
 
         [Server]
@@ -345,12 +378,29 @@ namespace Game {
             foreach (PlaygroundCard playgroundCard in card) {
                 PlaygroundCardData data = Resources.Load<PlaygroundCardData>(playgroundCard.GetCardName());
                 playgroundCard.SetData(data);
+                _playgroundCards.Add(playgroundCard);
             }
         }
 
         [Client]
         private void HandleSandStack(int oldValue, int newValue) {
             onDustCardSet?.Invoke(newValue);
+        }
+
+        [Client]
+        public PlaygroundCard GetPlaygroundCardFromIndex(Vector2 index) {
+            foreach (PlaygroundCard card in _playgroundCards) {
+                if (card.GetIndexPosition().Equals(index)) {
+                    return card;
+                }
+            }
+
+            return null;
+        }
+
+        [Client]
+        private void HandleStepCounter(int oldValue, int newCounterValue) {
+            onAvaibleStepsChanged?.Invoke(newCounterValue);
         }
 
         #endregion

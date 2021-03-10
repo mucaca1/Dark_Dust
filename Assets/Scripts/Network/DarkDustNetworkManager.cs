@@ -25,8 +25,7 @@ namespace Network {
             
             _players.Add(player);
 
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            gameManager.RegisterPlayerToQueue(player);
+            GameManager.Instance.RegisterPlayerToQueue(player);
         }
     }
 }

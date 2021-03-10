@@ -19,7 +19,6 @@ namespace Game.Cards.PlayCards.Tornado {
         }
 
         public override void DoAction() {
-            GameManager gameManager = FindObjectOfType<GameManager>();
             Debug.Log($"Tornado is moving to the {_direction} and for {_steps} steps.");
 
             int x = 0;
@@ -40,10 +39,10 @@ namespace Game.Cards.PlayCards.Tornado {
             }
             
             for (var i = 0; i < _steps; i++) {
-                PlaygroundCard playgroundCard = gameManager.GetCardAtIndex(gameManager.Tornado.GetIndexPosition() + new Vector2(x, y));
+                PlaygroundCard playgroundCard = GameManager.Instance.GetCardAtIndex(GameManager.Instance.Tornado.GetIndexPosition() + new Vector2(x, y));
                 if (playgroundCard == null) continue;
                 playgroundCard.AddSand();
-                gameManager.MoveTornadoToDestination(playgroundCard);
+                GameManager.Instance.MoveTornadoToDestination(playgroundCard);
             }
         }
     }
