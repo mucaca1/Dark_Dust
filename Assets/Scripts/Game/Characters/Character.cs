@@ -8,7 +8,7 @@ namespace Game.Characters {
     public class Character : NetworkBehaviour {
         [SerializeField] private Renderer renderer;
         [SyncVar] private string _characterName;
-        [SyncVar] private int _water;
+        [SyncVar(hook = nameof(HandleWaterValueChanged))] private int _water;
 
         [SyncVar] private int _maxWater;
 
@@ -56,13 +56,11 @@ namespace Game.Characters {
         [Server]
         public void SetWater(int water) {
             _water = Mathf.Max(_maxWater, _water + water);
-            onWaterValueChanged?.Invoke(this, _water, _maxWater);
         }
 
         [Server]
         public void DrinkWater() {
             _water = Mathf.Max(0, _water - 1);
-            onWaterValueChanged?.Invoke(this, _water, _maxWater);
             if (_water != 0) return;
             onCharacterDie?.Invoke(this);
         }
@@ -147,6 +145,11 @@ namespace Game.Characters {
         [Client]
         public void HandleIndexPosition(Vector2 oldIndexPosition, Vector2 newIndexPosition) {
             _position = GameManager.Instance.GetPlaygroundCardFromIndex(newIndexPosition);
+        }
+
+        [Client]
+        private void HandleWaterValueChanged(int oldWaterValue, int newWaterValue) {
+            onWaterValueChanged?.Invoke(this, newWaterValue, _maxWater);
         }
 
         #endregion

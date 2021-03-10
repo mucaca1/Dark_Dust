@@ -11,17 +11,15 @@ namespace Game.UI {
         [SerializeField] private TMP_Text _playerWaterText = null;
 
         private Player _player = null;
-
+        
         private void Start() {
             GameManager.Instance.onTakedItemsIncrease += HandleItemsUpdated;
+            Character.onWaterValueChanged += HandlePlayerWater;
         }
 
         private void Update() {
             if (_player == null) {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
-                if (_player != null) {
-                    Character.onWaterValueChanged += HandlePlayerWater;
-                }
             }
         }
 
