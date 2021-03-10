@@ -103,7 +103,7 @@ namespace Game.Characters {
 
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
-            card.RemoveSand(1);
+            card.RemoveSand(1 + GameManager.AbilityManager.RemoveExtraSandAbility(this));
         }
 
         [Server]

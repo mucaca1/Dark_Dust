@@ -168,7 +168,8 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoMoveAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (character.Position == this) return false;
-            if (!CanSeeThisCard(character.Position)) return false;
+            if (!(CanSeeThisCard(character.Position) ||
+                  GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
             if (!(CanMoveToThisPart() && character.Position.CanMoveToThisPart())) return false;
 
             return true;
@@ -176,7 +177,8 @@ namespace Game.Cards.PlaygroundCards {
 
         public bool CanCharacterDoRemoveSandAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
-            if (!CanSeeThisCard(character.Position)) return false;
+            if (!(CanSeeThisCard(character.Position) ||
+                  GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
             return _sandCount > 0;
         }
 

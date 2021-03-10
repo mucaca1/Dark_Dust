@@ -5,6 +5,7 @@ using System.Linq;
 using Game.Cards.PlayCards.Tornado;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
+using Game.Characters.Ability;
 using Mirror;
 using Network;
 using NUnit.Framework;
@@ -23,6 +24,8 @@ namespace Game {
             public int steps = 0;
             public TornadoDirection direction;
         }
+
+        private static AbilityManager abilityManager = new AbilityManager();
 
         private Player _activePlayer = null;
 
@@ -56,6 +59,8 @@ namespace Game {
         public List<PlaygroundCard> PlaygroundCards => _playgroundCards;
 
         public Player ActivePlayer => _activePlayer;
+
+        public static AbilityManager AbilityManager => abilityManager;
 
         public string ActivePlayerName => _activePlayerName;
 
