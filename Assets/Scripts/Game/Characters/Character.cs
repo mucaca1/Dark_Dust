@@ -1,5 +1,6 @@
 ﻿using System;
 using Game.Cards.PlaygroundCards;
+using Game.Characters.Ability;
 using Mirror;
 using Network;
 using UnityEngine;
@@ -8,11 +9,18 @@ namespace Game.Characters {
     public class Character : NetworkBehaviour {
         [SerializeField] private Renderer renderer;
         [SyncVar] private string _characterName;
-        [SyncVar(hook = nameof(HandleWaterValueChanged))] private int _water;
-        [SyncVar(hook = nameof(HandleCharacterInitialize))] private bool _initialized = false;
+
+        [SyncVar(hook = nameof(HandleWaterValueChanged))]
+        private int _water;
+
+        [SyncVar(hook = nameof(HandleCharacterInitialize))]
+        private bool _initialized = false;
 
         [SyncVar] private int _maxWater;
         [SyncVar] private string _abilityDescription = "";
+
+        [SyncVar] private int _abilityCode;
+        private AbilityType _ability;
 
         [SyncVar(hook = nameof(HandleIndexPosition))] [SerializeField]
         private Vector2 _positionIndex = Vector2.zero;
@@ -31,6 +39,8 @@ namespace Game.Characters {
 
         public string AbilityDescription => _abilityDescription;
 
+        public AbilityType Ability => (AbilityType) _abilityCode;
+
         public PlaygroundCard Position => _position;
 
         public override void OnStartClient() {
@@ -47,6 +57,8 @@ namespace Game.Characters {
                 CharacterData data = GameManager.Instance.GetCharacterData();
                 _characterName = data.characterName;
                 _maxWater = data.maxWater;
+                _ability = data.ability;
+                _abilityCode = _ability.GetHashCode();
                 _abilityDescription = data.abilityDescription;
                 SetWater(data.startWater);
                 SetStartPosition();

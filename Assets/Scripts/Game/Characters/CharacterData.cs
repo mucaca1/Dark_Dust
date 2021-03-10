@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Game.Characters.Ability;
+using UnityEngine;
 
 namespace Game.Characters {
     [CreateAssetMenu(fileName = "NewCharacterName", menuName = "DarkDust/Create New Character", order = 0)]
@@ -7,6 +8,8 @@ namespace Game.Characters {
 
         public int startWater = -1;
         public int maxWater = -1;
+
+        public AbilityType ability;
 
         [TextArea] public string abilityDescription = "Ability Description";
     }
