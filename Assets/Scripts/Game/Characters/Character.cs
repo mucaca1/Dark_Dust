@@ -60,7 +60,7 @@ namespace Game.Characters {
                 _ability = data.ability;
                 _abilityCode = _ability.GetHashCode();
                 _abilityDescription = data.abilityDescription;
-                SetWater(data.startWater);
+                ServerAddWater(data.startWater);
                 SetStartPosition();
                 _initialized = true;
             }
@@ -73,8 +73,8 @@ namespace Game.Characters {
         #region Server
 
         [Server]
-        public void SetWater(int water) {
-            _water = Mathf.Max(_maxWater, _water + water);
+        public void ServerAddWater(int water) {
+            _water = Mathf.Min(_maxWater, _water + water);
         }
 
         [Server]
@@ -141,6 +141,11 @@ namespace Game.Characters {
         [Command]
         private void CmdDoAction(PlayerAction action, PlaygroundCard card) {
             ServerDoAction(action, card);
+        }
+
+        [Command]
+        public void AddWater(int water) {
+            ServerAddWater(water);
         }
 
         #endregion

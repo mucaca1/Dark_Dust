@@ -49,12 +49,33 @@ namespace Game.Characters.Ability {
             foreach (Character otherCharacter in characters) {
                 if (otherCharacter == character) continue;
 
-                if (otherCharacter.Position == destination && (character.Position == destination || destination.CanSeeThisCard(character.Position))) {
+                if (otherCharacter.Position == destination && (character.Position == destination ||
+                                                               destination.CanSeeThisCard(character.Position))) {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject) {
+            switch (ability) {
+                case AbilityType.WaterCarrier:
+                    if (selectedObject.TryGetComponent(out PlaygroundCard card)) {
+                        if (card.CardType == PlaygroundCardType.Water) {
+                            if (sourceCharacter.hasAuthority) {
+                                sourceCharacter.AddWater(2);
+                                GameManager.Instance.DoAction();
+                            }
+                        }
+                    }
+
+                    if (selectedObject.TryGetComponent(out Character destinationCharacter)) {
+                        
+                    }
+
+                    break;
+            }
         }
     }
 }

@@ -192,6 +192,7 @@ namespace Game {
                     PlaygroundCard card = stack.Pop();
                     card.SetIndexPosition(new Vector2(i, j));
                     card.UpdatePosition();
+                    card.ExcavateCard();
 
                     if (card.CardType == PlaygroundCardType.Start) {
                         card.ExcavateCard();
@@ -426,7 +427,8 @@ namespace Game {
                 value.gameObject = source.gameObject;
                 value.itemName = source.CardType.ToString();
                 value.itemColor = Color.black;
-                playerSelect.Initialize(value);
+                playerSelect.Initialize(value, character.Ability);
+                playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
             }
             
             foreach (Character ch in FindObjectsOfType<Character>()) {
@@ -440,7 +442,8 @@ namespace Game {
                 value.gameObject = ch.GetComponent<Player>().gameObject;
                 value.itemName = ch.GetComponent<Player>().PlayerName;
                 value.itemColor = ch.GetComponent<Player>().PlayerColor;
-                playerSelect.Initialize(value);
+                playerSelect.Initialize(value, character.Ability);
+                playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
             }
 
             _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
@@ -449,12 +452,22 @@ namespace Game {
         [Client]
         private void HandleSpecialActionDialogueClose() {
             foreach (Transform child in _openedAbilityActionInstance.GetActionContentHolderTransform()) {
+                child.GetComponent<SelectPlayerUI>().onValueSelected -= HandleSpecialActionSelectedPlayer;
                 Destroy(child.gameObject);
             }
             
             _openedAbilityActionInstance.onCancel -= HandleSpecialActionDialogueClose;
             Destroy(_openedAbilityActionInstance.gameObject);
             _openedAbilityActionInstance = null;
+        }
+
+        [Client]
+        private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject) {
+            Character source = NetworkClient.connection.identity.GetComponent<Character>();
+
+            AbilityManager.DoSpecialAction(source, ability, selectedObject);
+
+            HandleSpecialActionDialogueClose();
         }
 
         #endregion
