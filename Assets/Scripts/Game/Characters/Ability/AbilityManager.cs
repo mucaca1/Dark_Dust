@@ -61,6 +61,7 @@ namespace Game.Characters.Ability {
         public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject, int value) {
             switch (ability) {
                 case AbilityType.WaterCarrier:
+                    if (value == 0) return;
                     if (selectedObject.TryGetComponent(out PlaygroundCard card)) {
                         if (card.CardType == PlaygroundCardType.Water) {
                             if (sourceCharacter.hasAuthority) {

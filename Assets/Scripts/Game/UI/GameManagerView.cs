@@ -15,7 +15,6 @@ namespace Game.UI {
 
         private void Start() {
             GameManager.Instance.onTakedItemsIncrease += HandleItemsUpdated;
-            Character.onWaterValueChanged += HandlePlayerWater;
             Character.onCharacterInitialized += HandleCreatedCharacter;
         }
 
@@ -24,6 +23,7 @@ namespace Game.UI {
                 _player = NetworkClient.connection?.identity?.GetComponent<Player>();
                 if (_player != null) {
                     _characterNameText.text = _player.GetComponent<Character>().CharacterName;
+                    _playerWaterText.text = $"Water: {_player.GetComponent<Character>().Water}/{_player.GetComponent<Character>().MAXWater}";
                 }
             }
         }
@@ -31,6 +31,7 @@ namespace Game.UI {
         private void OnDestroy() {
             GameManager.Instance.onTakedItemsIncrease -= HandleItemsUpdated;
             Character.onWaterValueChanged -= HandlePlayerWater;
+            Character.onCharacterInitialized -= HandleCreatedCharacter;
         }
 
         private void HandleItemsUpdated(int count) {
@@ -38,14 +39,15 @@ namespace Game.UI {
         }
 
         private void HandlePlayerWater(Character character, int newValue, int maxValue) {
-            if (!character.connectionToClient.identity.hasAuthority) return;
+            if (!character.GetComponent<Player>().hasAuthority) return;
             _playerWaterText.text = $"Water: {newValue}/{maxValue}";
         }
         
         private void HandleCreatedCharacter(Character character) {
-            if (character.connectionToClient.connectionId != NetworkClient.connection.connectionId) return;
+            if (!character.GetComponent<Player>().hasAuthority) return;
 
             _characterNameText.text = character.CharacterName;
+            Character.onWaterValueChanged += HandlePlayerWater;
         }
     }
 }

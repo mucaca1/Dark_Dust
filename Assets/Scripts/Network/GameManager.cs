@@ -212,7 +212,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("WaterCarrier")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -364,6 +364,16 @@ namespace Game {
             foreach (PlaygroundCard playgroundCard in _playgroundCards) {
                 if (position.Equals(playgroundCard.GetIndexPosition()))
                     return playgroundCard;
+            }
+
+            return null;
+        }
+        
+        [Server]
+        public PlaygroundCard ServerGetStartCard() {
+            foreach (PlaygroundCard card in _playgroundCards) {
+                if (card.CardType == PlaygroundCardType.Start)
+                    return card;
             }
 
             return null;

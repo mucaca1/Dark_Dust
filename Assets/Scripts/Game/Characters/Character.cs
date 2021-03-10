@@ -91,8 +91,7 @@ namespace Game.Characters {
 
         [Server]
         private void SetStartPosition() {
-            GameManager manager = FindObjectOfType<GameManager>();
-            _position = manager.GetStartCard();
+            _position = GameManager.Instance.ServerGetStartCard();
             _positionIndex = _position.GetIndexPosition();
             transform.position = _position.GetNextPlayerPosition(this);
         }
