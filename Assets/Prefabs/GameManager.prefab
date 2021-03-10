@@ -63,7 +63,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   playGroundStartTransform: {fileID: 0}
-  _characterPrefab: {fileID: 5363878563873457556, guid: da3f7478616c5464bb9c0a411d5accfc, type: 3}
   playgroundCardPrefab: {fileID: 8326528620090681419, guid: 293db6d6aa7993745a2b5a45c24a6688, type: 3}
   _tornadoCardsPrefab:
   - count: 3
@@ -72,3 +71,5 @@ MonoBehaviour:
     cardPrefab: {fileID: 7259095474834649348, guid: 21abca158ea8c284bb1a1f08b5ad9157, type: 3}
   - count: 24
     cardPrefab: {fileID: 980614261506025027, guid: ce1d4c431570e5147bea166e3163fdb2, type: 3}
+  _specialActionMenuPrefab: {fileID: 4820301463045079747, guid: 0c88db8027464f94dbdbcd250c701f78, type: 3}
+  _selectPlayerPrefab: {fileID: 530990115492742385, guid: 0b64c35638174ed449a1a438a6ec6bfd, type: 3}

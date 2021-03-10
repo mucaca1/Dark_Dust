@@ -17,6 +17,8 @@ namespace Game.UI {
         [SerializeField] private Button removeSandButton = null;
         [SerializeField] private Button pickUpAPartButton = null;
 
+        [SerializeField] private Toggle _specialActivityToggle = null;
+
         private Player _player = null;
         private PlayerController _controller = null;
 
@@ -25,6 +27,7 @@ namespace Game.UI {
             excavateButton.onClick.AddListener(ExcavateAction);
             removeSandButton.onClick.AddListener(RemoveSandAction);
             pickUpAPartButton.onClick.AddListener(PickUpAPartAction);
+            _specialActivityToggle.onValueChanged.AddListener(HandleSpecialAbilityToggle);
             GameManager.onAvaibleStepsChanged += HandleActionCounter;
         }
 
@@ -47,6 +50,7 @@ namespace Game.UI {
             excavateButton.onClick.RemoveListener(ExcavateAction);
             removeSandButton.onClick.RemoveListener(RemoveSandAction);
             pickUpAPartButton.onClick.RemoveListener(PickUpAPartAction);
+            _specialActivityToggle.onValueChanged.RemoveListener(HandleSpecialAbilityToggle);
         }
 
         private void WalkAction() {
@@ -82,6 +86,10 @@ namespace Game.UI {
 
         private void HandleActionCounter(int count) {
             _stepsAvaibleText.text = $"Actions: {count}";
+        }
+
+        private void HandleSpecialAbilityToggle(bool value) {
+            _controller.SetSpecialAction(value);
         }
     }
 }

@@ -15,6 +15,7 @@ MonoBehaviour:
   characterName: Navigator
   startWater: 5
   maxWater: 5
+  ability: 4
   abilityDescription: The Navigator may move another player up to 3 unblocked tiles
     per action, including tunnels. She can move the Explorer diagonally and can move
     the Climber through blocked tiles. When moved in this way, the Climber can also

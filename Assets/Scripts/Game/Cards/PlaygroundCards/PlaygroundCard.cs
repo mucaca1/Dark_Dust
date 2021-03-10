@@ -170,7 +170,11 @@ namespace Game.Cards.PlaygroundCards {
             if (character.Position == this) return false;
             if (!(CanSeeThisCard(character.Position) ||
                   GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
-            if (!(CanMoveToThisPart() && character.Position.CanMoveToThisPart())) return false;
+            if (!(CanMoveToThisPart() || GameManager.AbilityManager.CanMoveToCard(character)) &&
+                (
+                    character.Position.CanMoveToThisPart() ||
+                    GameManager.AbilityManager.CanMoveFromCard(character, character.Position)
+                )) return false;
 
             return true;
         }

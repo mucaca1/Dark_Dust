@@ -156,7 +156,12 @@ namespace Game.Characters {
         public void DoAction(PlayerAction action, PlaygroundCard card, bool specialAction) {
             if (!hasAuthority) return;
             if (!GetComponent<Player>().IsYourTurn) return;
-            if (card.CanActivePlayerDoAction(this)) {
+
+            if (!card.CanActivePlayerDoAction(this)) return;
+            if (specialAction && action == PlayerAction.WALK) {
+                GameManager.Instance.ShowSpecialActionDialogue(this, Position);
+            }
+            else {
                 CmdDoAction(action, card);
             }
         }

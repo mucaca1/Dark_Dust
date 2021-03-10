@@ -15,6 +15,7 @@ MonoBehaviour:
   characterName: Meteorologist
   startWater: 5
   maxWater: 5
+  ability: 3
   abilityDescription: The Meteorologist may spend actions to draw fewer Storm cards
     (1 card per action) at the end of her turn. She may also choose to spend 1 action
     to look at the top Storm cards, equal to the Storm level, and may place one at

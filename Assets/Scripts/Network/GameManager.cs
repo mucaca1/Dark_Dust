@@ -6,6 +6,7 @@ using Game.Cards.PlayCards.Tornado;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
 using Game.Characters.Ability;
+using Game.UI;
 using Mirror;
 using Network;
 using NUnit.Framework;
@@ -40,6 +41,9 @@ namespace Game {
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
 
+        [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
+        [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
+
         private Queue<TornadoDeckCardData> _tornadoCards = new Queue<TornadoDeckCardData>();
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
@@ -53,6 +57,8 @@ namespace Game {
 
         private int _stromTickMark = 2;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
+
+        private SpecialAbilityActionUI _openedAbilityActionInstance = null;
 
         public PlaygroundCard Tornado => _tornado;
 
@@ -406,6 +412,33 @@ namespace Game {
         [Client]
         private void HandleStepCounter(int oldValue, int newCounterValue) {
             onAvaibleStepsChanged?.Invoke(newCounterValue);
+        }
+
+        [Client]
+        public void ShowSpecialActionDialogue(Character character, PlaygroundCard source) {
+            _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
+            foreach (Character ch in FindObjectsOfType<Character>()) {
+                if (ch == character) continue;
+                if (ch.Position != source) continue;
+                
+                SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                playerSelect.transform.localScale = Vector3.one;
+                playerSelect.Initialize(ch.GetComponent<Player>());
+            }
+
+            _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
+        }
+
+        [Client]
+        private void HandleSpecialActionDialogueClose() {
+            foreach (Transform child in _openedAbilityActionInstance.GetActionContentHolderTransform()) {
+                Destroy(child.gameObject);
+            }
+            
+            _openedAbilityActionInstance.onCancel -= HandleSpecialActionDialogueClose;
+            Destroy(_openedAbilityActionInstance.gameObject);
+            _openedAbilityActionInstance = null;
         }
 
         #endregion

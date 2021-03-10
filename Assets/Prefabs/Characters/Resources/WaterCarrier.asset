@@ -15,6 +15,7 @@ MonoBehaviour:
   characterName: WaterCarrier
   startWater: 5
   maxWater: 6
+  ability: 5
   abilityDescription: The Water Carrier can take 2 water from already excavated wells
     for 1 action. She may also give water to players on adjacent tiles for free at
     any time. The Water Carrier also starts with 5 (instead of 4) water.

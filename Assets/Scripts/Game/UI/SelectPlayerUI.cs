@@ -17,6 +17,10 @@ namespace Game.UI {
             selectButton.onClick.AddListener(HandleButtonCLick);
         }
 
+        private void OnDestroy() {
+            selectButton.onClick.RemoveListener(HandleButtonCLick);
+        }
+
         private void HandleButtonCLick() {
             onPlayerSelected?.Invoke(_player);
         }
