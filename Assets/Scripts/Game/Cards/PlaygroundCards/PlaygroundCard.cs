@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Characters;
+using Game.Characters.Ability;
 using Mirror;
 using Network;
 using TMPro;
@@ -142,7 +143,8 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoAction(PlayerAction action, Character character) {
             switch (action) {
                 case PlayerAction.WALK:
-                    return CanCharacterDoMoveAction(character, character.GetComponent<PlayerController>().SpecialAction);
+                    return CanCharacterDoMoveAction(character,
+                        character.GetComponent<PlayerController>().SpecialAction);
                 case PlayerAction.EXCAVATE:
                     return CanCharacterExcavate(character);
                 case PlayerAction.REMOVE_SAND:
@@ -158,11 +160,18 @@ namespace Game.Cards.PlaygroundCards {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (character.Position == this) {
                 if (useSpecialAction) {
-                    return GameManager.AbilityManager.CanPickUpWater(character, this);
+                    return (GameManager.AbilityManager.CanPickUpWater(character, this) || 
+                            GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(), this));
                 }
 
                 return false;
             }
+
+            if (character.Ability == AbilityType.WaterCarrier && useSpecialAction) {
+                return (GameManager.AbilityManager.CanPickUpWater(character, this) || 
+                        GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(), this));
+            }
+
             if (!(CanSeeThisCard(character.Position) ||
                   GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
             if (!(CanMoveToThisPart() || GameManager.AbilityManager.CanMoveToCard(character)) &&

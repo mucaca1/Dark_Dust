@@ -159,7 +159,7 @@ namespace Game.Characters {
 
             if (!card.CanActivePlayerDoAction(this)) return;
             if (specialAction && action == PlayerAction.WALK) {
-                GameManager.Instance.ShowSpecialActionDialogue(this, Position);
+                GameManager.Instance.ShowSpecialActionDialogue(this, Position, card);
             }
             else {
                 CmdDoAction(action, card);

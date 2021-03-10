@@ -415,10 +415,10 @@ namespace Game {
         }
 
         [Client]
-        public void ShowSpecialActionDialogue(Character character, PlaygroundCard source) {
+        public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
             _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
 
-            if (abilityManager.CanUsePlaygroundCardAsPlayer(character)) {
+            if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination) {
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
                 playerSelect.transform.localScale = Vector3.one;
@@ -431,7 +431,7 @@ namespace Game {
             
             foreach (Character ch in FindObjectsOfType<Character>()) {
                 if (ch == character) continue;
-                if (ch.Position != source) continue;
+                if (ch.Position != source && !AbilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
                 
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
