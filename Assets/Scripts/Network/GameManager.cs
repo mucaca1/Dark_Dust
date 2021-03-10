@@ -368,7 +368,7 @@ namespace Game {
 
             return null;
         }
-        
+
         [Server]
         public PlaygroundCard ServerGetStartCard() {
             foreach (PlaygroundCard card in _playgroundCards) {
@@ -388,12 +388,12 @@ namespace Game {
         private void ServerAddWater(Character character, int water) {
             character.ServerAddWater(water);
         }
-        
+
         public void CmdAddWater(Character character, int water) {
             ServerAddWater(character, water);
         }
 
-        
+
         public void CmdRemoveWater(Character character, int water) {
             ServerRemoveWater(character, water);
         }
@@ -448,7 +448,8 @@ namespace Game {
         public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
             _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
             _openedAbilityActionInstance.Initialize(character.Ability);
-            if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination) {
+            if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination &&
+                destination.CardType == PlaygroundCardType.Water) {
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
                 playerSelect.transform.localScale = Vector3.one;
