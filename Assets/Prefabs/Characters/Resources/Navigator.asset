@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Navigator
   m_EditorClassIdentifier: 
   characterName: Navigator
-  startWater: 5
+  startWater: 2
   maxWater: 5
   ability: 4
   abilityDescription: The Navigator may move another player up to 3 unblocked tiles

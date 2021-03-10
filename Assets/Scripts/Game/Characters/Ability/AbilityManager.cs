@@ -58,7 +58,7 @@ namespace Game.Characters.Ability {
             return false;
         }
 
-        public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject) {
+        public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject, int value) {
             switch (ability) {
                 case AbilityType.WaterCarrier:
                     if (selectedObject.TryGetComponent(out PlaygroundCard card)) {
@@ -71,7 +71,10 @@ namespace Game.Characters.Ability {
                     }
 
                     if (selectedObject.TryGetComponent(out Character destinationCharacter)) {
-                        
+                        int waterToAdd = sourceCharacter.Water - value;
+                        sourceCharacter.RemoveWater(value);
+                        GameManager.Instance.CmdAddWater(destinationCharacter, waterToAdd);
+                        GameManager.Instance.DoAction();
                     }
 
                     break;

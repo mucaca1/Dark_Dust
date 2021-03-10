@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Meteorologist
   m_EditorClassIdentifier: 
   characterName: Meteorologist
-  startWater: 5
+  startWater: 2
   maxWater: 5
   ability: 3
   abilityDescription: The Meteorologist may spend actions to draw fewer Storm cards

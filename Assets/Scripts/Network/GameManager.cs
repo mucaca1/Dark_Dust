@@ -79,7 +79,7 @@ namespace Game {
         public static event Action onPlaygroundLoaded;
 
         public static event Action onDustTurn;
-        
+
         private static GameManager _gameManager;
 
         public static GameManager Instance {
@@ -212,7 +212,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("WaterCarrier")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -369,6 +369,25 @@ namespace Game {
             return null;
         }
 
+        [Server]
+        private void ServerRemoveWater(Character character, int water) {
+            character.ServerRemoveWater(water);
+        }
+
+        [Server]
+        private void ServerAddWater(Character character, int water) {
+            character.ServerAddWater(water);
+        }
+        
+        public void CmdAddWater(Character character, int water) {
+            ServerAddWater(character, water);
+        }
+
+        
+        public void CmdRemoveWater(Character character, int water) {
+            ServerRemoveWater(character, water);
+        }
+
         #endregion
 
         #region Client
@@ -418,7 +437,7 @@ namespace Game {
         [Client]
         public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
             _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
-
+            _openedAbilityActionInstance.Initialize(character.Ability);
             if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination) {
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
@@ -430,11 +449,11 @@ namespace Game {
                 playerSelect.Initialize(value, character.Ability);
                 playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
             }
-            
+
             foreach (Character ch in FindObjectsOfType<Character>()) {
                 if (ch == character) continue;
                 if (ch.Position != source && !AbilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
-                
+
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
                 playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
                 playerSelect.transform.localScale = Vector3.one;
@@ -455,7 +474,7 @@ namespace Game {
                 child.GetComponent<SelectPlayerUI>().onValueSelected -= HandleSpecialActionSelectedPlayer;
                 Destroy(child.gameObject);
             }
-            
+
             _openedAbilityActionInstance.onCancel -= HandleSpecialActionDialogueClose;
             Destroy(_openedAbilityActionInstance.gameObject);
             _openedAbilityActionInstance = null;
@@ -465,7 +484,8 @@ namespace Game {
         private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject) {
             Character source = NetworkClient.connection.identity.GetComponent<Character>();
 
-            AbilityManager.DoSpecialAction(source, ability, selectedObject);
+            AbilityManager.DoSpecialAction(source, ability, selectedObject,
+                _openedAbilityActionInstance.GetInputValue());
 
             HandleSpecialActionDialogueClose();
         }

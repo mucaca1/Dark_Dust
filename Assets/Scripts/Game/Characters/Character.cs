@@ -78,6 +78,11 @@ namespace Game.Characters {
         }
 
         [Server]
+        public void ServerRemoveWater(int water) {
+            _water = Mathf.Min(_maxWater, _water - water);
+        }
+
+        [Server]
         public void DrinkWater() {
             _water = Mathf.Max(0, _water - 1);
             if (_water != 0) return;
@@ -146,6 +151,11 @@ namespace Game.Characters {
         [Command]
         public void AddWater(int water) {
             ServerAddWater(water);
+        }
+
+        [Command]
+        public void RemoveWater(int water) {
+            ServerRemoveWater(water);
         }
 
         #endregion
