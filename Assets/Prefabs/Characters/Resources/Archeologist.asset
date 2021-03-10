@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Archeologist
   m_EditorClassIdentifier: 
   characterName: Archeologist
-  water: 4
-  abilityNames:
-  - RemoveSandAbility
+  startWater: 4
+  maxWater: 4
   abilityDescription: The Archeologist can remove 2 Sand markers from any single
     tile for 1 action.

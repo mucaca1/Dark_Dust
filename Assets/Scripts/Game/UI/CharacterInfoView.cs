@@ -22,6 +22,7 @@ namespace Game.UI {
                 Character character = _player.GetComponent<Character>();
                 characterName.text = character.CharacterName;
                 waterCapacity.text = $"Water capacity: {character.MAXWater}";
+                abilityDescription.text = character.AbilityDescription;
             }
         }
     }

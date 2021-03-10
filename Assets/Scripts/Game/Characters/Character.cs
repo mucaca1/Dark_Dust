@@ -9,14 +9,17 @@ namespace Game.Characters {
         [SerializeField] private Renderer renderer;
         [SyncVar] private string _characterName;
         [SyncVar(hook = nameof(HandleWaterValueChanged))] private int _water;
+        [SyncVar(hook = nameof(HandleCharacterInitialize))] private bool _initialized = false;
 
         [SyncVar] private int _maxWater;
+        [SyncVar] private string _abilityDescription = "";
 
         [SyncVar(hook = nameof(HandleIndexPosition))] [SerializeField]
         private Vector2 _positionIndex = Vector2.zero;
 
         [SerializeField] private PlaygroundCard _position = null;
 
+        public static event Action<Character> onCharacterInitialized;
         public static event Action<Character, int, int> onWaterValueChanged;
         public event Action<Character> onCharacterDie;
 
@@ -25,6 +28,8 @@ namespace Game.Characters {
         public int Water => _water;
 
         public string CharacterName => _characterName;
+
+        public string AbilityDescription => _abilityDescription;
 
         public PlaygroundCard Position => _position;
 
@@ -42,8 +47,10 @@ namespace Game.Characters {
                 CharacterData data = GameManager.Instance.GetCharacterData();
                 _characterName = data.characterName;
                 _maxWater = data.maxWater;
+                _abilityDescription = data.abilityDescription;
                 SetWater(data.startWater);
                 SetStartPosition();
+                _initialized = true;
             }
 
             if (isClient) {
@@ -150,6 +157,13 @@ namespace Game.Characters {
         [Client]
         private void HandleWaterValueChanged(int oldWaterValue, int newWaterValue) {
             onWaterValueChanged?.Invoke(this, newWaterValue, _maxWater);
+        }
+
+        [Client]
+        private void HandleCharacterInitialize(bool oldValue, bool newValue) {
+            if (newValue) {
+                onCharacterInitialized?.Invoke(this);
+            }
         }
 
         #endregion
