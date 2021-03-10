@@ -136,18 +136,7 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanActivePlayerDoAction(Character character) {
             if (!character.gameObject.GetComponent<Player>().IsYourTurn) return false;
 
-            switch (character.GetComponent<PlayerController>().Action) {
-                case PlayerAction.WALK:
-                    return CanCharacterDoMoveAction(character);
-                case PlayerAction.EXCAVATE:
-                    return CanCharacterExcavate(character);
-                case PlayerAction.REMOVE_SAND:
-                    return CanCharacterDoRemoveSandAction(character);
-                case PlayerAction.PICK_UP_A_PART:
-                    return CanCharacterPickUpAPart(character);
-            }
-
-            return false;
+            return CanCharacterDoAction(character.GetComponent<PlayerController>().Action, character);
         }
 
         public bool CanCharacterDoAction(PlayerAction action, Character character) {
