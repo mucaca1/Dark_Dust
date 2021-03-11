@@ -23,10 +23,11 @@ namespace Game.Characters.Ability {
             return character.Ability == AbilityType.Climber;
         }
 
-        public bool CanMoveFromCard(Character character, PlaygroundCard card) {
+        public bool CanMoveFromCard(Character character, PlaygroundCard sourceCard, PlaygroundCard destinationCard) {
             if (character.Ability == AbilityType.Climber) return true;
+            if (!destinationCard.CanMoveToThisPart()) return false;
 
-            foreach (Character ch in card.GetCharacters()) {
+            foreach (Character ch in sourceCard.GetCharacters()) {
                 if (ch.Ability == AbilityType.Climber) {
                     return true;
                 }
@@ -84,9 +85,8 @@ namespace Game.Characters.Ability {
 
                 case AbilityType.Climber:
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
-                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination, false);
                         GameManager.Instance.CmdMoveCharacter(selectedCharacter, destination);
-                        GameManager.Instance.DoAction();
+                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination); // DoAction contain DoAction.
                     }
 
                     break;

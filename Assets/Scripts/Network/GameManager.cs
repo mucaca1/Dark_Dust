@@ -391,7 +391,7 @@ namespace Game {
 
         [Server]
         private void ServerMoveCharacter(Character character, PlaygroundCard card) {
-            character.ServerDoAction(PlayerAction.WALK, card, false);
+            character.SetNewPosition(card);
         }
 
         public void CmdAddWater(Character character, int water) {

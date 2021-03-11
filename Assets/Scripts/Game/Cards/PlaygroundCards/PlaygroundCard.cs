@@ -177,7 +177,7 @@ namespace Game.Cards.PlaygroundCards {
             if (!(CanMoveToThisPart() || GameManager.AbilityManager.CanMoveToCard(character)) &&
                 (
                     character.Position.CanMoveToThisPart() ||
-                    GameManager.AbilityManager.CanMoveFromCard(character, character.Position)
+                    GameManager.AbilityManager.CanMoveFromCard(character, character.Position, this)
                 )) return false;
 
             return true;
