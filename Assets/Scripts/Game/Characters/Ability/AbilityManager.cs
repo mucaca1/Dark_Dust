@@ -119,5 +119,9 @@ namespace Game.Characters.Ability {
         public bool HasAuraAbility(Character character) {
             return character.Ability == AbilityType.Archeologist || character.Ability == AbilityType.Explorer;
         }
+
+        public bool CanMoveWithCharacter(Character character) {
+            return character.Ability == AbilityType.Navigator;
+        }
     }
 }

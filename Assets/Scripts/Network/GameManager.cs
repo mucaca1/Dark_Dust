@@ -87,7 +87,7 @@ namespace Game {
 
         private void Awake() {
             if (_gameManager != null && _gameManager != this) {
-                Destroy(this.gameObject);
+                Destroy(gameObject);
             }
             else {
                 _gameManager = this;
@@ -217,7 +217,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("Meteorologist")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("Navigator")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -424,9 +424,8 @@ namespace Game {
                 futureCards.Add(t[i].text);
                 if (i == 2) break;
             }
-
         }
-        
+
         [Server]
         public void MoveCardToTheBottom(int cardIndex) {
             futureCards.Clear();

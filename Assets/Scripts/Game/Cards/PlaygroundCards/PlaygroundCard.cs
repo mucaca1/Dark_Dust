@@ -167,6 +167,15 @@ namespace Game.Cards.PlaygroundCards {
                 return false;
             }
 
+            if (useSpecialAction && character.GetComponent<Player>().AbilityManager.CanMoveWithCharacter(character)) {
+                foreach (Character character1 in GetCharacters()) {
+                    if (character == character1) continue;
+                    return true;
+                }
+
+                return false;
+            }
+
             if (character.Position == this) {
                 if (useSpecialAction) {
                     return (player.AbilityManager.CanPickUpWater(character, this) ||

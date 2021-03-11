@@ -137,6 +137,20 @@ namespace Network {
                     }
                 }
             }
+            else if (_abilityManager.CanMoveWithCharacter(character)) {
+                foreach (Player player in FindObjectsOfType<Player>()) {
+                    if (player == this) continue;
+                    SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    playerSelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                    value.gameObject = player.gameObject;
+                    value.itemName = player.PlayerName;
+                    value.itemColor = player.PlayerColor;
+                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+            }
             else {
                 if (_abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination &&
                     destination.CardType == PlaygroundCardType.Water) {
@@ -151,7 +165,7 @@ namespace Network {
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
 
-                foreach (Character ch in FindObjectsOfType<Character>()) {
+                foreach (Character ch in destination.GetCharacters()) {
                     if (ch == character) continue;
                     if (ch.Position != source && !_abilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
 
