@@ -121,7 +121,7 @@ namespace Game.Characters {
         }
 
         [Server]
-        private void ServerDoAction(PlayerAction action, PlaygroundCard card) {
+        public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction = true) {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
             if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
@@ -139,12 +139,13 @@ namespace Game.Characters {
                     break;
             }
 
-            GameManager.Instance.DoAction();
+            if (isAction)
+                GameManager.Instance.DoAction();
         }
 
         [Command]
-        private void CmdDoAction(PlayerAction action, PlaygroundCard card) {
-            ServerDoAction(action, card);
+        public void CmdDoAction(PlayerAction action, PlaygroundCard card, bool isAction = true) {
+            ServerDoAction(action, card, isAction);
         }
 
         [Command]
@@ -167,7 +168,7 @@ namespace Game.Characters {
         }
 
         [Client]
-        public void DoAction(PlayerAction action, PlaygroundCard card, bool specialAction) {
+        public void DoAction(PlayerAction action, PlaygroundCard card, bool specialAction, bool isAction = true) {
             if (!hasAuthority) return;
             if (!GetComponent<Player>().IsYourTurn) return;
 
@@ -176,7 +177,7 @@ namespace Game.Characters {
                 GameManager.Instance.ShowSpecialActionDialogue(this, Position, card);
             }
             else {
-                CmdDoAction(action, card);
+                CmdDoAction(action, card, isAction);
             }
         }
 

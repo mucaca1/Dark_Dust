@@ -58,7 +58,9 @@ namespace Game.Characters.Ability {
             return false;
         }
 
-        public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject, int value) {
+        public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject,
+            int value, PlaygroundCard source, PlaygroundCard destination) {
+            Character selectedCharacter = null;
             switch (ability) {
                 case AbilityType.WaterCarrier:
                     if (value == 0) return;
@@ -71,10 +73,19 @@ namespace Game.Characters.Ability {
                         }
                     }
 
-                    if (selectedObject.TryGetComponent(out Character destinationCharacter)) {
+                    if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         int waterToAdd = sourceCharacter.Water - value;
                         sourceCharacter.RemoveWater(value);
-                        GameManager.Instance.CmdAddWater(destinationCharacter, waterToAdd);
+                        GameManager.Instance.CmdAddWater(selectedCharacter, waterToAdd);
+                        GameManager.Instance.DoAction();
+                    }
+
+                    break;
+
+                case AbilityType.Climber:
+                    if (selectedObject.TryGetComponent(out selectedCharacter)) {
+                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination, false);
+                        GameManager.Instance.CmdMoveCharacter(selectedCharacter, destination);
                         GameManager.Instance.DoAction();
                     }
 

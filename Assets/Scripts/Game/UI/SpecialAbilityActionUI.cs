@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Cards.PlaygroundCards;
 using Game.Characters.Ability;
 using TMPro;
 using UnityEngine;
@@ -10,6 +11,9 @@ namespace Game.UI {
         [SerializeField] private TMP_Text description = null;
         [SerializeField] private GameObject actionContent = null;
         [SerializeField] private Button cancelButton = null;
+
+        public PlaygroundCard SourceCard { get; private set; } = null;
+        public PlaygroundCard DestinationCard { get; private set; } = null;
 
         public event Action onCancel;
 
@@ -29,8 +33,10 @@ namespace Game.UI {
             return actionContent.transform;
         }
 
-        public void Initialize(AbilityType abilityType) {
+        public void Initialize(AbilityType abilityType, PlaygroundCard source, PlaygroundCard destination) {
             waterInputField.gameObject.SetActive(abilityType == AbilityType.WaterCarrier);
+            SourceCard = source;
+            DestinationCard = destination;
         }
 
         public int GetInputValue() {

@@ -389,6 +389,11 @@ namespace Game {
             character.ServerAddWater(water);
         }
 
+        [Server]
+        private void ServerMoveCharacter(Character character, PlaygroundCard card) {
+            character.ServerDoAction(PlayerAction.WALK, card, false);
+        }
+
         public void CmdAddWater(Character character, int water) {
             ServerAddWater(character, water);
         }
@@ -396,6 +401,10 @@ namespace Game {
 
         public void CmdRemoveWater(Character character, int water) {
             ServerRemoveWater(character, water);
+        }
+
+        public void CmdMoveCharacter(Character character, PlaygroundCard card) {
+            ServerMoveCharacter(character, card);
         }
 
         #endregion
@@ -447,7 +456,7 @@ namespace Game {
         [Client]
         public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
             _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
-            _openedAbilityActionInstance.Initialize(character.Ability);
+            _openedAbilityActionInstance.Initialize(character.Ability, source, destination);
             if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination &&
                 destination.CardType == PlaygroundCardType.Water) {
                 SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
@@ -496,7 +505,8 @@ namespace Game {
             Character source = NetworkClient.connection.identity.GetComponent<Character>();
 
             AbilityManager.DoSpecialAction(source, ability, selectedObject,
-                _openedAbilityActionInstance.GetInputValue());
+                _openedAbilityActionInstance.GetInputValue(), _openedAbilityActionInstance.SourceCard,
+                _openedAbilityActionInstance.DestinationCard);
 
             HandleSpecialActionDialogueClose();
         }
