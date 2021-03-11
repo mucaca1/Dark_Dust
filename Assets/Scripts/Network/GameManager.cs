@@ -71,6 +71,8 @@ namespace Game {
 
         public string ActivePlayerName => _activePlayerName;
 
+        public int ActualStormTickMark => _actualStormTickMark;
+
         public event Action<int> onTakedItemsIncrease;
         public event Action<int> onStromTickMarkChanged;
         public event Action<int> onDustCardSet;
