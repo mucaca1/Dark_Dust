@@ -121,8 +121,8 @@ namespace Game.Characters {
         }
 
         [Server]
-        public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction = true) {
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
+        public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
+            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn && isAction) return;
             if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
                 case PlayerAction.WALK:
@@ -144,7 +144,7 @@ namespace Game.Characters {
         }
 
         [Command]
-        public void CmdDoAction(PlayerAction action, PlaygroundCard card, bool isAction = true) {
+        public void CmdDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
             ServerDoAction(action, card, isAction);
         }
 
