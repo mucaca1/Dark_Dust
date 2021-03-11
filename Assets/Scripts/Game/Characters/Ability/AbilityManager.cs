@@ -81,5 +81,9 @@ namespace Game.Characters.Ability {
                     break;
             }
         }
+
+        public bool HasAuraAbility(Character character) {
+            return character.Ability == AbilityType.Archeologist || character.Ability == AbilityType.Explorer;
+        }
     }
 }

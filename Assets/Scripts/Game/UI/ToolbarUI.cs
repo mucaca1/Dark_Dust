@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using Game.Characters;
+using Mirror;
 using Network;
 using TMPro;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace Game.UI {
                 if (_player != null) {
                     _player.onChangeActivePlayer += HandleSwapPlayer;
                     _controller = _player.GetComponent<PlayerController>();
+                    _specialActivityToggle.gameObject.SetActive(!GameManager.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
                     HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
                 }
             }
