@@ -250,6 +250,11 @@ namespace Game.Cards.PlaygroundCards {
         [Server]
         public void ExcavateCard() {
             _isRevealed = true;
+            if (_cardType == PlaygroundCardType.Water) {
+                foreach (Character character in GetCharacters()) {
+                    character.AddWater(2);
+                }
+            }
         }
 
 
