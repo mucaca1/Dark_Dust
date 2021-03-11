@@ -192,6 +192,10 @@ namespace Game.Cards.PlaygroundCards {
                             this));
             }
 
+            if (_cardType == PlaygroundCardType.Cave && character.Position.CardType == PlaygroundCardType.Cave) {
+                return CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character);
+            } 
+
             if (!(CanSeeThisCard(character.Position) ||
                   player.AbilityManager.CanMoveHorizontal(character, this))) return false;
             if (!(CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character)) &&
