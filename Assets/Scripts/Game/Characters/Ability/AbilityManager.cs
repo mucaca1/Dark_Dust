@@ -113,6 +113,14 @@ namespace Game.Characters.Ability {
                     
                     onDoAction?.Invoke();
                     break;
+                
+                case AbilityType.Navigator:
+                    if (selectedObject.TryGetComponent(out selectedCharacter)) {
+                        sourceCharacter.CharacterInControl = selectedCharacter;
+                        onDoAction?.Invoke();
+                    }
+
+                    break;
             }
         }
 

@@ -363,7 +363,7 @@ namespace Game.Cards.PlaygroundCards {
 
         [ClientCallback]
         void OnMouseOver() {
-            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Character>())
+            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Character>().CharacterInControl)
                 ? Color.green
                 : Color.red;
             _hoverMark.GetComponentInChildren<Image>().color = color;

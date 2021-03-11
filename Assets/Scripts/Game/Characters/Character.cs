@@ -26,6 +26,7 @@ namespace Game.Characters {
         private Vector2 _positionIndex = Vector2.zero;
 
         [SerializeField] private PlaygroundCard _position = null;
+        [SerializeField] private Character _characterInControl = null;
 
         public static event Action<Character> onCharacterInitialized;
         public static event Action<Character, int, int> onWaterValueChanged;
@@ -42,6 +43,11 @@ namespace Game.Characters {
         public AbilityType Ability => (AbilityType) _abilityCode;
 
         public PlaygroundCard Position => _position;
+
+        public Character CharacterInControl {
+            get => _characterInControl;
+            set => _characterInControl = value;
+        }
 
         public override void OnStartClient() {
             GameManager.onPlaygroundLoaded += HandlePlaygroundLoaded;
@@ -67,6 +73,7 @@ namespace Game.Characters {
 
             if (isClient) {
                 renderer.material.color = gameObject.GetComponent<Player>().PlayerColor;
+                CharacterInControl = this;
             }
         }
 

@@ -44,7 +44,7 @@ namespace Network {
             _abilityManager.onDoAction += HandleOnDoAction;
             AbilityManager.onChangeWater += HandleOnChangeWater;
             AbilityManager.onPositionChange += HandleOnPositionChange;
-            _abilityManager.onWeakenStorm += HandleOnWeakenStrom;
+            _abilityManager.onWeakenStorm += HandleOnWeakenStorm;
             _abilityManager.onShowCards += HandleOnShowCards;
         }
 
@@ -251,7 +251,7 @@ namespace Network {
         }
 
         [Client]
-        private void HandleOnWeakenStrom() {
+        private void HandleOnWeakenStorm() {
             if (!hasAuthority) return;
             CmdWakenStorm();
         }
