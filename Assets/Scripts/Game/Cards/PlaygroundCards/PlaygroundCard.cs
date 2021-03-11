@@ -300,6 +300,13 @@ namespace Game.Cards.PlaygroundCards {
 
             destinationCard.UpdatePosition();
             UpdatePosition();
+            
+            foreach (Character character in destinationCard.GetCharacters()) {
+                character.SetNewPosition(destinationCard);
+            }
+            foreach (Character character in GetCharacters()) {
+                character.SetNewPosition(this);
+            }
         }
 
         #endregion
