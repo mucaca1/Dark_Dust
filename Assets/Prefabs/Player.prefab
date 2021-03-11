@@ -161,7 +161,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  _characterPrefab: {fileID: 8215660185469076910, guid: da3f7478616c5464bb9c0a411d5accfc, type: 3}
+  _specialActionMenuPrefab: {fileID: 4820301463045079747, guid: 0c88db8027464f94dbdbcd250c701f78, type: 3}
+  _selectPlayerPrefab: {fileID: 530990115492742385, guid: 0b64c35638174ed449a1a438a6ec6bfd, type: 3}
   _playerName: PlayerName
 --- !u!114 &83124752965086984
 MonoBehaviour:
@@ -196,7 +197,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   renderer: {fileID: 7982367936583612739}
-  _controller: {fileID: 7214548167954324723}
+  _positionIndex: {x: 0, y: 0}
+  _position: {fileID: 0}
 --- !u!114 &7214548167954324723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,3 +214,4 @@ MonoBehaviour:
   _layerMask:
     serializedVersion: 2
     m_Bits: 1024
+  _action: 0

@@ -107,7 +107,7 @@ namespace Game.Characters {
 
         [Server]
         private void ServerRemoveSand(PlaygroundCard card) {
-            card.RemoveSand(1 + GameManager.AbilityManager.RemoveExtraSandAbility(this));
+            card.RemoveSand(1 + GetComponent<Player>().AbilityManager.RemoveExtraSandAbility(this));
         }
 
         [Server]
@@ -121,8 +121,8 @@ namespace Game.Characters {
         }
 
         [Server]
-        public void ServerDoAction(PlayerAction action, PlaygroundCard card) {
-            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn) return;
+        public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
+            if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn && isAction) return;
             if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
                 case PlayerAction.WALK:
@@ -139,12 +139,13 @@ namespace Game.Characters {
                     break;
             }
 
-            GameManager.Instance.DoAction();
+            if (isAction)
+                GameManager.Instance.DoAction();
         }
 
         [Command]
-        public void CmdDoAction(PlayerAction action, PlaygroundCard card) {
-            ServerDoAction(action, card);
+        public void CmdDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
+            ServerDoAction(action, card, isAction);
         }
 
         [Command]
@@ -173,10 +174,10 @@ namespace Game.Characters {
 
             if (!card.CanActivePlayerDoAction(this)) return;
             if (specialAction && action == PlayerAction.WALK) {
-                GameManager.Instance.ShowSpecialActionDialogue(this, Position, card);
+                GetComponent<Player>().ShowSpecialActionDialogue(this, Position, card);
             }
             else {
-                CmdDoAction(action, card);
+                CmdDoAction(action, card, true);
             }
         }
 

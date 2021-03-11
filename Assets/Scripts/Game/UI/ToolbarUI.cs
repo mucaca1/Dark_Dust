@@ -38,7 +38,7 @@ namespace Game.UI {
                 if (_player != null) {
                     _player.onChangeActivePlayer += HandleSwapPlayer;
                     _controller = _player.GetComponent<PlayerController>();
-                    _specialActivityToggle.gameObject.SetActive(!GameManager.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
+                    _specialActivityToggle.gameObject.SetActive(!_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
                     HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
                 }
             }

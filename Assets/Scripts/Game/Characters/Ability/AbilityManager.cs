@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Game.Cards.PlaygroundCards;
 using UnityEngine;
 
 namespace Game.Characters.Ability {
     public class AbilityManager {
+        public event Action onDoAction;
+        public static event Action<Character, int> onChangeWater;
+        public static event Action<Character, PlaygroundCard> onPositionChange;
+        public event Action onWeakenStorm;
+        public event Action<int> onShowCards;
+
         public int RemoveExtraSandAbility(Character character) {
             if (character.Ability == AbilityType.Archeologist) {
                 return 1;
@@ -72,25 +78,26 @@ namespace Game.Characters.Ability {
                     if (selectedObject.TryGetComponent(out PlaygroundCard card)) {
                         if (card.CardType == PlaygroundCardType.Water) {
                             if (sourceCharacter.hasAuthority) {
-                                sourceCharacter.AddWater(2);
-                                GameManager.Instance.DoAction();
+                                onChangeWater?.Invoke(sourceCharacter, 2);
+                                onDoAction?.Invoke();
                             }
                         }
                     }
 
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         int waterToAdd = sourceCharacter.Water - value;
-                        sourceCharacter.RemoveWater(value);
-                        GameManager.Instance.CmdAddWater(selectedCharacter, waterToAdd);
-                        GameManager.Instance.DoAction();
+                        onChangeWater?.Invoke(sourceCharacter, value);
+                        onChangeWater?.Invoke(sourceCharacter, waterToAdd);
+                        onDoAction?.Invoke();
                     }
 
                     break;
 
                 case AbilityType.Climber:
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
-                        GameManager.Instance.CmdMoveCharacter(selectedCharacter, destination);
-                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination); // Action walk contain DoAction.
+                        onPositionChange?.Invoke(selectedCharacter, destination);
+                        onPositionChange?.Invoke(sourceCharacter, destination);
+                        onDoAction?.Invoke();
                     }
 
                     break;
@@ -98,14 +105,13 @@ namespace Game.Characters.Ability {
                 case AbilityType.Meteorologist:
                     if (index == -1) {
                         if (GameManager.Instance.ActualStormTickMark == 0) return;
-                        GameManager.Instance.CmdWeakenStormCard();
+                        onWeakenStorm?.Invoke();
                     }
                     else {
-                        // Remove card
+                        onShowCards?.Invoke(index);
                     }
                     
-                    GameManager.Instance.DoAction();
-                    Debug.Log("Meteorologist action");
+                    onDoAction?.Invoke();
                     break;
             }
         }

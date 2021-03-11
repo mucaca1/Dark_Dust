@@ -33,10 +33,14 @@ namespace Game.UI {
             return actionContent.transform;
         }
 
-        public void Initialize(AbilityType abilityType, PlaygroundCard source, PlaygroundCard destination) {
+        public void Initialize(AbilityType abilityType, PlaygroundCard source, PlaygroundCard destination, bool canCancel = true) {
             waterInputField.gameObject.SetActive(abilityType == AbilityType.WaterCarrier);
             SourceCard = source;
             DestinationCard = destination;
+            if (!canCancel) {
+                cancelButton.gameObject.SetActive(false);
+                cancelButton.onClick.RemoveListener(HandleCancel);
+            }
         }
 
         public int GetInputValue() {

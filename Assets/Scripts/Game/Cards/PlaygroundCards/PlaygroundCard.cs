@@ -157,8 +157,9 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         public bool CanCharacterDoMoveAction(Character character, bool useSpecialAction) {
+            Player player = character.GetComponent<Player>();
             if (useSpecialAction &&
-                GameManager.AbilityManager.CanClockOnTornado(character)) {
+                player.AbilityManager.CanClockOnTornado(character)) {
                 return _cardType == PlaygroundCardType.Tornado;
             }
 
@@ -168,8 +169,8 @@ namespace Game.Cards.PlaygroundCards {
 
             if (character.Position == this) {
                 if (useSpecialAction) {
-                    return (GameManager.AbilityManager.CanPickUpWater(character, this) ||
-                            GameManager.AbilityManager.CanGiveWaterToSomePlayer(character,
+                    return (player.AbilityManager.CanPickUpWater(character, this) ||
+                            player.AbilityManager.CanGiveWaterToSomePlayer(character,
                                 FindObjectsOfType<Character>(), this));
                 }
 
@@ -177,17 +178,17 @@ namespace Game.Cards.PlaygroundCards {
             }
 
             if (character.Ability == AbilityType.WaterCarrier && useSpecialAction) {
-                return (GameManager.AbilityManager.CanPickUpWater(character, this) ||
-                        GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(),
+                return (player.AbilityManager.CanPickUpWater(character, this) ||
+                        player.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(),
                             this));
             }
 
             if (!(CanSeeThisCard(character.Position) ||
-                  GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
-            if (!(CanMoveToThisPart() || GameManager.AbilityManager.CanMoveToCard(character)) &&
+                  player.AbilityManager.CanMoveHorizontal(character, this))) return false;
+            if (!(CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character)) &&
                 (
                     character.Position.CanMoveToThisPart() ||
-                    GameManager.AbilityManager.CanMoveFromCard(character, character.Position, this)
+                    player.AbilityManager.CanMoveFromCard(character, character.Position, this)
                 )) return false;
 
             return true;
@@ -196,7 +197,7 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoRemoveSandAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (!(CanSeeThisCard(character.Position) ||
-                  GameManager.AbilityManager.CanMoveHorizontal(character, this))) return false;
+                  GetComponent<Player>().AbilityManager.CanMoveHorizontal(character, this))) return false;
             return _sandCount > 0;
         }
 
