@@ -22,5 +22,9 @@ namespace Game.Cards.PlayCards.Tornado {
             }
             Debug.Log("Sun Beats Down");
         }
+
+        public override string GetString() {
+            return "Sun Beats Down";
+        }
     }
 }

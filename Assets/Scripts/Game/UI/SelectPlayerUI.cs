@@ -8,6 +8,7 @@ using UnityEngine.UI;
 namespace Game.UI {
     public class SelectPlayerUI : MonoBehaviour {
         public class Value {
+            public int index = -1;
             public GameObject gameObject;
             public string itemName;
             public Color itemColor;
@@ -18,7 +19,8 @@ namespace Game.UI {
         [SerializeField] private Button selectButton = null;
 
         private AbilityType action = AbilityType.Archeologist;
-        public event Action<AbilityType, GameObject> onValueSelected;
+        private int index = -1;
+        public event Action<AbilityType, GameObject, int> onValueSelected;
 
         private GameObject _gameObjectRefference = null;
 
@@ -31,13 +33,14 @@ namespace Game.UI {
         }
 
         private void HandleButtonCLick() {
-            onValueSelected?.Invoke(action, _gameObjectRefference);
+            onValueSelected?.Invoke(action, _gameObjectRefference, index);
         }
 
         public void Initialize(Value value, AbilityType action) {
             _gameObjectRefference = value.gameObject;
             playerNameText.text = value.itemName;
             playerColor.color = value.itemColor;
+            index = value.index;
             this.action = action;
         }
     }

@@ -45,5 +45,9 @@ namespace Game.Cards.PlayCards.Tornado {
                 GameManager.Instance.MoveTornadoToDestination(playgroundCard);
             }
         }
+
+        public override string GetString() {
+            return $"Moving {_direction}, {_steps} steps";
+        }
     }
 }

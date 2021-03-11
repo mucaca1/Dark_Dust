@@ -45,6 +45,10 @@ namespace Game.Characters.Ability {
                     destination.CardType == PlaygroundCardType.Water && destination.IsRevealed);
         }
 
+        public bool CanClockOnTornado(Character character) {
+            return character.Ability == AbilityType.Meteorologist;
+        }
+
         public bool CanGiveWaterToSomePlayer(Character character, Character[] characters, PlaygroundCard destination) {
             if (character.Ability != AbilityType.WaterCarrier) return false;
             foreach (Character otherCharacter in characters) {
@@ -60,7 +64,7 @@ namespace Game.Characters.Ability {
         }
 
         public void DoSpecialAction(Character sourceCharacter, AbilityType ability, GameObject selectedObject,
-            int value, PlaygroundCard source, PlaygroundCard destination) {
+            int value, PlaygroundCard source, PlaygroundCard destination, int index) {
             Character selectedCharacter = null;
             switch (ability) {
                 case AbilityType.WaterCarrier:
@@ -86,9 +90,21 @@ namespace Game.Characters.Ability {
                 case AbilityType.Climber:
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         GameManager.Instance.CmdMoveCharacter(selectedCharacter, destination);
-                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination); // DoAction contain DoAction.
+                        sourceCharacter.CmdDoAction(PlayerAction.WALK, destination); // Action walk contain DoAction.
                     }
 
+                    break;
+                
+                case AbilityType.Meteorologist:
+                    if (index == -1) {
+                        GameManager.Instance.CmdWeakenStormCard();
+                    }
+                    else {
+                        // Remove card
+                    }
+                    
+                    GameManager.Instance.DoAction();
+                    Debug.Log("Meteorologist action");
                     break;
             }
         }

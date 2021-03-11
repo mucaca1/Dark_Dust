@@ -9,7 +9,6 @@ using Game.Characters.Ability;
 using Game.UI;
 using Mirror;
 using Network;
-using NUnit.Framework;
 using UnityEngine;
 
 namespace Game {
@@ -24,6 +23,7 @@ namespace Game {
             public TornadoCard cardPrefab = null;
             public int steps = 0;
             public TornadoDirection direction;
+            [SyncVar] public string text = "";
         }
 
         private static AbilityManager abilityManager = new AbilityManager();
@@ -55,7 +55,8 @@ namespace Game {
         [SyncVar(hook = nameof(HandleSandStack))]
         private int _sandStackReaming = 48;
 
-        private int _stromTickMark = 2;
+        [SyncVar] private int _actualStormTickMark = 2;
+        private int _stromTickMarkValue = 2;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
 
         private SpecialAbilityActionUI _openedAbilityActionInstance = null;
@@ -133,8 +134,8 @@ namespace Game {
 
         [Server]
         public void StormTickUp() {
-            ++_stromTickMark;
-            onStromTickMarkChanged?.Invoke(_stromTickMark);
+            ++_stromTickMarkValue;
+            onStromTickMarkChanged?.Invoke(_stromTickMarkValue);
         }
 
         [Server]
@@ -212,7 +213,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("Meteorologist")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }
@@ -239,7 +240,19 @@ namespace Game {
                         if (moveDirection++ % 8 == 0)
                             ++moveCounter;
                         cardData.steps = moveCounter;
+
+                        cardData.text = $"Moving {cardData.direction}, {cardData.steps} steps";
                     }
+                    else {
+                        SunBeatsDown tornadoSun = cardSet.cardPrefab as SunBeatsDown;
+                        if (tornadoSun != null) {
+                            cardData.text = "Sun Beats Down";
+                        }
+                        else {
+                            cardData.text = "Storm Pick Up";
+                        }
+                    }
+
 
                     generatedSet.Add(cardData);
                 }
@@ -287,6 +300,7 @@ namespace Game {
 
         [Server]
         private void StartNewTurn() {
+            _actualStormTickMark = _stromTickMarkValue;
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
             _activePlayer.StartTurn();
@@ -296,7 +310,7 @@ namespace Game {
         [Server]
         private IEnumerator DesertTurn() {
             Debug.Log("Desert is in command");
-            int pickUpCards = _stromTickMark;
+            int pickUpCards = _actualStormTickMark;
             for (int i = 0; i < pickUpCards; i++) {
                 if (_tornadoCards.Count == 0)
                     GenerateStormDeck();
@@ -394,6 +408,16 @@ namespace Game {
             character.SetNewPosition(card);
         }
 
+        [Server]
+        private void ServerWeakStormCard() {
+            _actualStormTickMark = Mathf.Max(_actualStormTickMark - 1, 0);
+        }
+
+        [Command]
+        public void CmdWeakenStormCard() {
+            ServerWeakStormCard();
+        }
+
         public void CmdAddWater(Character character, int water) {
             ServerAddWater(character, water);
         }
@@ -428,7 +452,12 @@ namespace Game {
             foreach (PlaygroundCard playgroundCard in card) {
                 PlaygroundCardData data = Resources.Load<PlaygroundCardData>(playgroundCard.GetCardName());
                 playgroundCard.SetData(data);
-                _playgroundCards.Add(playgroundCard);
+                if (playgroundCard.CardType == PlaygroundCardType.Tornado) {
+                    _tornado = playgroundCard;
+                }
+                else {
+                    _playgroundCards.Add(playgroundCard);
+                }
             }
         }
 
@@ -455,35 +484,90 @@ namespace Game {
 
         [Client]
         public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
-            _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
-            _openedAbilityActionInstance.Initialize(character.Ability, source, destination);
-            if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination &&
-                destination.CardType == PlaygroundCardType.Water) {
-                SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
-                playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
-                playerSelect.transform.localScale = Vector3.one;
-                SelectPlayerUI.Value value = new SelectPlayerUI.Value();
-                value.gameObject = source.gameObject;
-                value.itemName = source.CardType.ToString();
-                value.itemColor = Color.black;
-                playerSelect.Initialize(value, character.Ability);
-                playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+            bool abilityViewWasOpened = _openedAbilityActionInstance != null;
+
+            if (!abilityViewWasOpened) {
+                _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
+                _openedAbilityActionInstance.Initialize(character.Ability, source, destination);
             }
 
-            foreach (Character ch in FindObjectsOfType<Character>()) {
-                if (ch == character) continue;
-                if (ch.Position != source && !AbilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
+            if (destination.CardType == PlaygroundCardType.Tornado && abilityManager.CanClockOnTornado(character)) {
+                if (abilityViewWasOpened) {
+                    HandleSpecialActionDialogueClose();
+                    _openedAbilityActionInstance =
+                        Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
+                    _openedAbilityActionInstance.Initialize(character.Ability, source, destination);
 
-                SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
-                playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
-                playerSelect.transform.localScale = Vector3.one;
-                SelectPlayerUI.Value value = new SelectPlayerUI.Value();
-                value.gameObject = ch.GetComponent<Player>().gameObject;
-                value.itemName = ch.GetComponent<Player>().PlayerName;
-                value.itemColor = ch.GetComponent<Player>().PlayerColor;
-                playerSelect.Initialize(value, character.Ability);
-                playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                    for (int i = 0; i < 3; i++) {
+                        SelectPlayerUI playerSelect =
+                            Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                        playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                        playerSelect.transform.localScale = Vector3.one;
+                        SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                        value.index = i;
+                        value.gameObject = _tornadoCards.ToArray()[i].cardPrefab.gameObject;
+                        value.itemName = _tornadoCards.ToArray()[i].text;
+                        value.itemColor = Color.gray;
+                        playerSelect.Initialize(value, character.Ability);
+                        playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                    }
+
+                    SelectPlayerUI emptySelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    emptySelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    emptySelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value emptyValue = new SelectPlayerUI.Value();
+                    emptyValue.index = 4;
+                    emptyValue.gameObject = null;
+                    emptyValue.itemName = "Do not move card";
+                    emptyValue.itemColor = Color.gray;
+                    emptySelect.Initialize(emptyValue, character.Ability);
+                    emptySelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+                else {
+                    for (int i = 0; i < 2; i++) {
+                        SelectPlayerUI playerSelect =
+                            Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                        playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                        playerSelect.transform.localScale = Vector3.one;
+                        SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                        value.gameObject = i % 2 == 0 ? destination.gameObject : null;
+                        value.itemName = i % 2 == 0 ? "Skip one tornado card" : "Show tornado cards";
+                        value.itemColor = i % 2 == 0 ? Color.black : Color.gray;
+                        playerSelect.Initialize(value, character.Ability);
+                        playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                    }
+                }
             }
+            else {
+                if (abilityManager.CanUsePlaygroundCardAsPlayer(character) && character.Position == destination &&
+                    destination.CardType == PlaygroundCardType.Water) {
+                    SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    playerSelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                    value.gameObject = source.gameObject;
+                    value.itemName = source.CardType.ToString();
+                    value.itemColor = Color.black;
+                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+
+                foreach (Character ch in FindObjectsOfType<Character>()) {
+                    if (ch == character) continue;
+                    if (ch.Position != source && !AbilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
+
+                    SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    playerSelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                    value.gameObject = ch.GetComponent<Player>().gameObject;
+                    value.itemName = ch.GetComponent<Player>().PlayerName;
+                    value.itemColor = ch.GetComponent<Player>().PlayerColor;
+                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+            }
+
 
             _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
         }
@@ -501,14 +585,18 @@ namespace Game {
         }
 
         [Client]
-        private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject) {
+        private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject, int index) {
             Character source = NetworkClient.connection.identity.GetComponent<Character>();
+            if (ability == AbilityType.Meteorologist && index == -1 && selectedObject == null) {
+                ShowSpecialActionDialogue(source, source.Position, _tornado);
+            }
+            else {
+                AbilityManager.DoSpecialAction(source, ability, selectedObject,
+                    _openedAbilityActionInstance.GetInputValue(), _openedAbilityActionInstance.SourceCard,
+                    _openedAbilityActionInstance.DestinationCard, index);
 
-            AbilityManager.DoSpecialAction(source, ability, selectedObject,
-                _openedAbilityActionInstance.GetInputValue(), _openedAbilityActionInstance.SourceCard,
-                _openedAbilityActionInstance.DestinationCard);
-
-            HandleSpecialActionDialogueClose();
+                HandleSpecialActionDialogueClose();
+            }
         }
 
         #endregion

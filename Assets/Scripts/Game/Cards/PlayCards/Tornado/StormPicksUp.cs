@@ -9,5 +9,9 @@ namespace Game.Cards.PlayCards.Tornado {
             GameManager.Instance.StormTickUp();
             Debug.Log("Storm Pick Up");
         }
+
+        public override string GetString() {
+            return "Storm Pick Up";
+        }
     }
 }

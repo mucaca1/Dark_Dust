@@ -157,19 +157,29 @@ namespace Game.Cards.PlaygroundCards {
         }
 
         public bool CanCharacterDoMoveAction(Character character, bool useSpecialAction) {
-            if (_cardType == PlaygroundCardType.Tornado) return false;
+            if (useSpecialAction &&
+                GameManager.AbilityManager.CanClockOnTornado(character)) {
+                return _cardType == PlaygroundCardType.Tornado;
+            }
+
+            if (_cardType == PlaygroundCardType.Tornado) {
+                return false;
+            }
+
             if (character.Position == this) {
                 if (useSpecialAction) {
-                    return (GameManager.AbilityManager.CanPickUpWater(character, this) || 
-                            GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(), this));
+                    return (GameManager.AbilityManager.CanPickUpWater(character, this) ||
+                            GameManager.AbilityManager.CanGiveWaterToSomePlayer(character,
+                                FindObjectsOfType<Character>(), this));
                 }
 
                 return false;
             }
 
             if (character.Ability == AbilityType.WaterCarrier && useSpecialAction) {
-                return (GameManager.AbilityManager.CanPickUpWater(character, this) || 
-                        GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(), this));
+                return (GameManager.AbilityManager.CanPickUpWater(character, this) ||
+                        GameManager.AbilityManager.CanGiveWaterToSomePlayer(character, FindObjectsOfType<Character>(),
+                            this));
             }
 
             if (!(CanSeeThisCard(character.Position) ||
@@ -300,10 +310,11 @@ namespace Game.Cards.PlaygroundCards {
 
             destinationCard.UpdatePosition();
             UpdatePosition();
-            
+
             foreach (Character character in destinationCard.GetCharacters()) {
                 character.SetNewPosition(destinationCard);
             }
+
             foreach (Character character in GetCharacters()) {
                 character.SetNewPosition(this);
             }
@@ -333,7 +344,6 @@ namespace Game.Cards.PlaygroundCards {
 
         [ClientCallback]
         void OnMouseOver() {
-            if (_cardType == PlaygroundCardType.Tornado) return;
             Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Character>())
                 ? Color.green
                 : Color.red;
