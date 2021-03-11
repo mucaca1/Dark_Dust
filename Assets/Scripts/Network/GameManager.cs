@@ -52,7 +52,7 @@ namespace Game {
         private int _sandStackReaming = 48;
 
         [SyncVar] private int _actualStormTickMark = 2;
-        private int _stromTickMarkValue = 2;
+        [SyncVar] private int _stromTickMarkValue = 2;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
 
         public PlaygroundCard Tornado => _tornado;
@@ -64,6 +64,7 @@ namespace Game {
         public string ActivePlayerName => _activePlayerName;
 
         public int ActualStormTickMark => _actualStormTickMark;
+        public int StormTickMarkValue => _stromTickMarkValue;
 
         public event Action<int> onTakedItemsIncrease;
         public event Action<int> onStromTickMarkChanged;
