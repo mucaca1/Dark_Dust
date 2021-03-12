@@ -177,8 +177,12 @@ namespace Game.Characters {
         
         [Command]
         private void CmdDoActionWithCharacter(Character character, PlaygroundCard card) {
-            character.SetNewPosition(card);
-            --_characterInControl.extraMoveSteps;
+            character.CharacterInControl.SetNewPosition(card);
+            --character._characterInControl.extraMoveSteps;
+            if (_characterInControl.extraMoveSteps == 0) {
+                GameManager.Instance.DoAction();
+                character.CharacterInControl = character;
+            }
         }
 
         #endregion
@@ -204,7 +208,7 @@ namespace Game.Characters {
                     CmdDoAction(action, card, true);
                 }
                 else {
-                    onMoveCharacterWithExtraStep?.Invoke(_characterInControl, card);
+                    onMoveCharacterWithExtraStep?.Invoke(this, card);
                 }
             }
         }

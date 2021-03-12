@@ -119,9 +119,7 @@ namespace Game.Characters.Ability {
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         sourceCharacter.CharacterInControl = selectedCharacter;
                         onControlOtherCharacter?.Invoke();
-                        onDoAction?.Invoke();
                     }
-
                     break;
             }
         }
