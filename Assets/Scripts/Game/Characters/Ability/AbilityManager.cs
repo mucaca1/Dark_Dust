@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Game.Characters.Ability {
     public class AbilityManager {
+        public event Action onControlOtherCharacter;
         public event Action onDoAction;
         public static event Action<Character, int> onChangeWater;
         public static event Action<Character, PlaygroundCard> onPositionChange;
@@ -117,6 +118,7 @@ namespace Game.Characters.Ability {
                 case AbilityType.Navigator:
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         sourceCharacter.CharacterInControl = selectedCharacter;
+                        onControlOtherCharacter?.Invoke();
                         onDoAction?.Invoke();
                     }
 

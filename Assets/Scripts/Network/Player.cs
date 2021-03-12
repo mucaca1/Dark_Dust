@@ -46,6 +46,7 @@ namespace Network {
             AbilityManager.onPositionChange += HandleOnPositionChange;
             _abilityManager.onWeakenStorm += HandleOnWeakenStorm;
             _abilityManager.onShowCards += HandleOnShowCards;
+            _abilityManager.onControlOtherCharacter += HandleControlOtherCharacter;
         }
 
         #region Server
@@ -88,6 +89,11 @@ namespace Network {
             else {
                 GameManager.Instance.MoveCardToTheBottom(cardIndex);
             }
+        }
+        
+        [Command]
+        private void CmdInitializeControl() {
+            GetComponent<Character>().CharacterInControl.ExtraMoveSteps = 3;
         }
 
         #endregion
@@ -272,6 +278,11 @@ namespace Network {
         private void HandleOnDoAction() {
             if (!hasAuthority && !IsYourTurn) return;
             CmdDoAction();
+        }
+
+        [Client]
+        private void HandleControlOtherCharacter() {
+            CmdInitializeControl();
         }
 
         #endregion

@@ -16,6 +16,8 @@ namespace Game.Characters {
         [SyncVar(hook = nameof(HandleCharacterInitialize))]
         private bool _initialized = false;
 
+        [SyncVar] private int extraMoveSteps = 0;
+
         [SyncVar] private int _maxWater;
         [SyncVar] private string _abilityDescription = "";
 
@@ -30,7 +32,14 @@ namespace Game.Characters {
 
         public static event Action<Character> onCharacterInitialized;
         public static event Action<Character, int, int> onWaterValueChanged;
+
+        private static event Action<Character, PlaygroundCard> onMoveCharacterWithExtraStep;
         public event Action<Character> onCharacterDie;
+
+        public int ExtraMoveSteps {
+            get => extraMoveSteps;
+            set => extraMoveSteps = value;
+        }
 
         public int MAXWater => _maxWater;
 
@@ -74,6 +83,7 @@ namespace Game.Characters {
             if (isClient) {
                 renderer.material.color = gameObject.GetComponent<Player>().PlayerColor;
                 CharacterInControl = this;
+                Character.onMoveCharacterWithExtraStep += HandleMoveCharacterWithExtraStep;
             }
         }
 
@@ -164,6 +174,12 @@ namespace Game.Characters {
         public void RemoveWater(int water) {
             ServerRemoveWater(water);
         }
+        
+        [Command]
+        private void CmdDoActionWithCharacter(Character character, PlaygroundCard card) {
+            character.SetNewPosition(card);
+            --_characterInControl.extraMoveSteps;
+        }
 
         #endregion
 
@@ -179,12 +195,17 @@ namespace Game.Characters {
             if (!hasAuthority) return;
             if (!GetComponent<Player>().IsYourTurn) return;
 
-            if (!card.CanActivePlayerDoAction(this)) return;
-            if (specialAction && action == PlayerAction.WALK) {
+            if (!card.CanActivePlayerDoAction(_characterInControl, this == _characterInControl)) return;
+            if (specialAction && action == PlayerAction.WALK && this == _characterInControl) {
                 GetComponent<Player>().ShowSpecialActionDialogue(this, Position, card);
             }
             else {
-                CmdDoAction(action, card, true);
+                if (_characterInControl.extraMoveSteps == 0) {
+                    CmdDoAction(action, card, true);
+                }
+                else {
+                    onMoveCharacterWithExtraStep?.Invoke(_characterInControl, card);
+                }
             }
         }
 
@@ -203,6 +224,12 @@ namespace Game.Characters {
             if (newValue) {
                 onCharacterInitialized?.Invoke(this);
             }
+        }
+
+        [Client]
+        private void HandleMoveCharacterWithExtraStep(Character character, PlaygroundCard card) {
+            if (!hasAuthority) return;
+            CmdDoActionWithCharacter(character, card);
         }
 
         #endregion

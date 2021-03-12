@@ -134,8 +134,13 @@ namespace Game.Cards.PlaygroundCards {
         }
 
 
-        public bool CanActivePlayerDoAction(Character character) {
-            if (!character.gameObject.GetComponent<Player>().IsYourTurn) return false;
+        public bool CanActivePlayerDoAction(Character character, bool isOwnerCharacter) {
+            if (!character.gameObject.GetComponent<Player>().IsYourTurn && isOwnerCharacter) return false;
+
+            if (!isOwnerCharacter) {
+                return CanCharacterDoMoveAction(character,
+                    character.GetComponent<PlayerController>().SpecialAction);
+            }
 
             return CanCharacterDoAction(character.GetComponent<PlayerController>().Action, character);
         }
@@ -194,7 +199,7 @@ namespace Game.Cards.PlaygroundCards {
 
             if (_cardType == PlaygroundCardType.Cave && character.Position.CardType == PlaygroundCardType.Cave) {
                 return CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character);
-            } 
+            }
 
             if (!(CanSeeThisCard(character.Position) ||
                   player.AbilityManager.CanMoveHorizontal(character, this))) return false;
@@ -363,9 +368,11 @@ namespace Game.Cards.PlaygroundCards {
 
         [ClientCallback]
         void OnMouseOver() {
-            Color color = CanActivePlayerDoAction(NetworkClient.connection.identity.GetComponent<Character>().CharacterInControl)
-                ? Color.green
-                : Color.red;
+            Character character = NetworkClient.connection.identity.GetComponent<Character>();
+            Color color =
+                CanActivePlayerDoAction(character.CharacterInControl, character.CharacterInControl == character)
+                    ? Color.green
+                    : Color.red;
             _hoverMark.GetComponentInChildren<Image>().color = color;
             _hoverMark.SetActive(true);
         }
