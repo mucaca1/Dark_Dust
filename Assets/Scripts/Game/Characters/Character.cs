@@ -179,10 +179,17 @@ namespace Game.Characters {
         private void CmdDoActionWithCharacter(Character character, PlaygroundCard card) {
             character.CharacterInControl.SetNewPosition(card);
             --character._characterInControl.extraMoveSteps;
-            if (_characterInControl.extraMoveSteps == 0) {
-                GameManager.Instance.DoAction();
-                character.CharacterInControl = character;
-            }
+            if (_characterInControl.extraMoveSteps != 0) return;
+            GameManager.Instance.DoAction();
+            character.CharacterInControl = character;
+        }
+
+        [Command]
+        public void CmdDoExtraMoveStep() {
+            --_characterInControl.extraMoveSteps;
+            if (_characterInControl.extraMoveSteps != 0) return;
+            GameManager.Instance.DoAction();
+            CharacterInControl = this;
         }
 
         #endregion
@@ -200,8 +207,8 @@ namespace Game.Characters {
             if (!GetComponent<Player>().IsYourTurn) return;
 
             if (!card.CanActivePlayerDoAction(_characterInControl, this == _characterInControl)) return;
-            if (specialAction && action == PlayerAction.WALK && this == _characterInControl) {
-                GetComponent<Player>().ShowSpecialActionDialogue(this, Position, card);
+            if (specialAction && action == PlayerAction.WALK) {
+                GetComponent<Player>().ShowSpecialActionDialogue(_characterInControl, Position, card);
             }
             else {
                 if (_characterInControl.extraMoveSteps == 0) {

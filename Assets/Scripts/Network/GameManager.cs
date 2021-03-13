@@ -217,7 +217,7 @@ namespace Game {
         [Server]
         private void LoadCharacterData() {
             _charactersData.Clear();
-            List<CharacterData> data = Resources.LoadAll<CharacterData>("Navigator")?.ToList();
+            List<CharacterData> data = Resources.LoadAll<CharacterData>("")?.ToList();
             if (data == null) {
                 throw new Exception("Characters data are missing");
             }

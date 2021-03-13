@@ -1,4 +1,5 @@
 ﻿using Game.Characters;
+using Game.Characters.Ability;
 using Mirror;
 using Network;
 using TMPro;
@@ -20,6 +21,8 @@ namespace Game.UI {
 
         [SerializeField] private Toggle _specialActivityToggle = null;
 
+        [SerializeField] private Button _endControllingAnotherCharacterButton = null;
+
         private Player _player = null;
         private PlayerController _controller = null;
 
@@ -30,6 +33,8 @@ namespace Game.UI {
             pickUpAPartButton.onClick.AddListener(PickUpAPartAction);
             _specialActivityToggle.onValueChanged.AddListener(HandleSpecialAbilityToggle);
             GameManager.onAvaibleStepsChanged += HandleActionCounter;
+            
+            _endControllingAnotherCharacterButton.gameObject.SetActive(false);
         }
 
         private void Update() {
@@ -40,6 +45,8 @@ namespace Game.UI {
                     _controller = _player.GetComponent<PlayerController>();
                     _specialActivityToggle.gameObject.SetActive(!_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
                     HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
+                    _player.AbilityManager.onControlOtherCharacter += HandleControlAnotherCharacter;
+                    _endControllingAnotherCharacterButton.onClick.AddListener(HandleEndOfControllingAnotherCharacter);
                 }
             }
         }
@@ -53,6 +60,7 @@ namespace Game.UI {
             removeSandButton.onClick.RemoveListener(RemoveSandAction);
             pickUpAPartButton.onClick.RemoveListener(PickUpAPartAction);
             _specialActivityToggle.onValueChanged.RemoveListener(HandleSpecialAbilityToggle);
+            _endControllingAnotherCharacterButton.onClick.RemoveListener(HandleEndOfControllingAnotherCharacter);
         }
 
         private void WalkAction() {
@@ -92,6 +100,32 @@ namespace Game.UI {
 
         private void HandleSpecialAbilityToggle(bool value) {
             _controller.SetSpecialAction(value);
+        }
+
+        private void HandleControlAnotherCharacter() {
+            Character characterInControl = _player.GetComponent<Character>().CharacterInControl;
+            _specialActivityToggle.gameObject.SetActive(characterInControl.Ability == AbilityType.Climber);
+            _specialActivityToggle.isOn = false;
+            _endControllingAnotherCharacterButton.gameObject.SetActive(true);
+
+            excavateButton.interactable = false;
+            removeSandButton.interactable = false;
+            pickUpAPartButton.interactable = false;
+        }
+
+        private void HandleEndOfControllingAnotherCharacter() {
+            int stepsRemaining = _player.GetComponent<Character>().CharacterInControl.ExtraMoveSteps;
+            for (int i = 0; i < stepsRemaining; i++) {
+                _player.GetComponent<Character>().CmdDoExtraMoveStep();
+            }
+
+            _endControllingAnotherCharacterButton.gameObject.SetActive(false);
+            _specialActivityToggle.isOn = false;
+            _specialActivityToggle.gameObject.SetActive(!_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
+            
+            excavateButton.interactable = true;
+            removeSandButton.interactable = true;
+            pickUpAPartButton.interactable = true;
         }
     }
 }

@@ -90,7 +90,7 @@ namespace Network {
                 GameManager.Instance.MoveCardToTheBottom(cardIndex);
             }
         }
-        
+
         [Command]
         private void CmdInitializeControl() {
             GetComponent<Character>().CharacterInControl.ExtraMoveSteps = 3;
@@ -171,7 +171,9 @@ namespace Network {
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
 
-                foreach (Character ch in destination.GetCharacters()) {
+                foreach (Character ch in _abilityManager.CanMoveToCard(character)
+                    ? character.Position.GetCharacters()
+                    : destination.GetCharacters()) {
                     if (ch == character) continue;
                     if (ch.Position != source && !_abilityManager.CanUsePlaygroundCardAsPlayer(character)) continue;
 
@@ -182,6 +184,7 @@ namespace Network {
                     value.gameObject = ch.GetComponent<Player>().gameObject;
                     value.itemName = ch.GetComponent<Player>().PlayerName;
                     value.itemColor = ch.GetComponent<Player>().PlayerColor;
+                    value.index = ch.ExtraMoveSteps;
                     playerSelect.Initialize(value, character.Ability);
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
@@ -198,9 +201,19 @@ namespace Network {
                 ShowSpecialActionDialogue(source, source.Position, GameManager.Instance.Tornado);
             }
             else {
-                _abilityManager.DoSpecialAction(source, ability, selectedObject,
-                    _openedAbilityActionInstance.GetInputValue(), _openedAbilityActionInstance.SourceCard,
-                    _openedAbilityActionInstance.DestinationCard, index);
+                if (source.ExtraMoveSteps != 0 && ability == AbilityType.Climber) {
+                    if (selectedObject.TryGetComponent(out Character character)) {
+                        HandleOnPositionChange(source, _openedAbilityActionInstance.DestinationCard);
+                        HandleOnPositionChange(character, _openedAbilityActionInstance.DestinationCard);
+                        GetComponent<Character>().CmdDoExtraMoveStep();
+                    }
+                }
+                else {
+                    _abilityManager.DoSpecialAction(source, ability, selectedObject,
+                        _openedAbilityActionInstance.GetInputValue(), _openedAbilityActionInstance.SourceCard,
+                        _openedAbilityActionInstance.DestinationCard, index);
+                }
+
 
                 HandleSpecialActionDialogueClose();
             }
