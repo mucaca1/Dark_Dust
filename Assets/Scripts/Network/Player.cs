@@ -11,7 +11,7 @@ namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
         [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
-        
+
         SyncList<int> _playerCards = new SyncList<int>();
 
         private SpecialAbilityActionUI _openedAbilityActionInstance = null;
@@ -101,6 +101,15 @@ namespace Network {
         [Command]
         private void CmdInitializeControl() {
             GetComponent<Character>().CharacterInControl.ExtraMoveSteps = 3;
+        }
+
+
+        [Command]
+        private void CmdGiveCardToThePlayer(int cardId, Player player) {
+            if (GetComponent<Character>().Position != player.GetComponent<Character>().Position) return;
+            if (!_playerCards.Contains(cardId)) return;
+            _playerCards.Remove(cardId);
+            player.PlayerCards.Add(cardId);
         }
 
         #endregion
@@ -303,6 +312,17 @@ namespace Network {
         [Client]
         private void HandleControlOtherCharacter() {
             CmdInitializeControl();
+        }
+
+        [Client]
+        public bool CanGiveCardToThePlayer(Player player) {
+            return _playerCards.Count != 0 &&
+                   GetComponent<Character>().Position == player.GetComponent<Character>().Position;
+        }
+
+        [Client]
+        public void GiveCardToThePlayer(int cardId, Player player) {
+            CmdGiveCardToThePlayer(cardId, player);
         }
 
         #endregion
