@@ -266,11 +266,18 @@ namespace Game.Cards.PlaygroundCards {
         #region Server
 
         [Server]
-        public void ExcavateCard() {
+        public void ExcavateCard(Character who = null) {
             _isRevealed = true;
             if (_cardType == PlaygroundCardType.Water) {
                 foreach (Character character in GetCharacters()) {
                     character.AddWater(2);
+                }
+            }
+
+            if (who != null) {
+                if (_cardType == PlaygroundCardType.Components || _cardType == PlaygroundCardType.Cave) {
+                    // Add card for player
+                    who.GetComponent<Player>().PlayerCards.Add(GameManager.Instance.GetNextItemCard());
                 }
             }
         }

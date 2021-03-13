@@ -442,6 +442,11 @@ namespace Game {
                 if (i == 2) break;
             }
         }
+        
+        [Server]
+        public int GetNextItemCard() {
+            return _itemsCards.Dequeue();
+        }
 
         [Server]
         public void MoveCardToTheBottom(int cardIndex) {

@@ -33,6 +33,11 @@ namespace Network {
 
         public bool IsYourTurn => isYourTurn;
 
+        public SyncList<int> PlayerCards {
+            get => _playerCards;
+            set => _playerCards = value;
+        }
+
 
         public string PlayerName {
             get => _playerName;

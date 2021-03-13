@@ -129,7 +129,7 @@ namespace Game.Characters {
 
         [Server]
         private void ServerExcavate(PlaygroundCard card) {
-            card.ExcavateCard();
+            card.ExcavateCard(this);
         }
 
         [Server]
