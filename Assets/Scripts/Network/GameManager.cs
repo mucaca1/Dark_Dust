@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Game {
     public class GameManager : NetworkBehaviour {
         [Serializable]
-        private class TornadoCardSet {
+        private class CardSet {
             public int count = 0;
             public TornadoCard cardPrefab = null;
         }
@@ -38,7 +38,8 @@ namespace Game {
         public SyncList<string> futureCards = new SyncList<string>();
         [SerializeField] private Transform playGroundStartTransform = null;
         [SerializeField] private GameObject playgroundCardPrefab = null;
-        [SerializeField] private TornadoCardSet[] _tornadoCardsPrefab = new TornadoCardSet[0];
+        [SerializeField] private CardSet[] _tornadoCardsPrefab = new CardSet[0];
+        [SerializeField] private CardSet[] _itemsCardsPrefab = new CardSet[0];
 
         private Queue<TornadoDeckCardData> _tornadoCards = new Queue<TornadoDeckCardData>();
 
@@ -234,7 +235,7 @@ namespace Game {
             int moveDirection = 0;
             int moveCounter = 0;
             List<TornadoDeckCardData> generatedSet = new List<TornadoDeckCardData>();
-            foreach (TornadoCardSet cardSet in _tornadoCardsPrefab) {
+            foreach (CardSet cardSet in _tornadoCardsPrefab) {
                 for (var i = 0; i < cardSet.count; i++) {
                     TornadoDeckCardData cardData = new TornadoDeckCardData();
                     cardData.cardPrefab = cardSet.cardPrefab;
