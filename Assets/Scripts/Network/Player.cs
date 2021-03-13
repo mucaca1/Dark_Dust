@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Game;
+using Game.Cards.PlayCards.Items;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
 using Game.Characters.Ability;
@@ -11,6 +13,7 @@ namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
         [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
+        [SerializeField] private SelectItemUI _selectItemPrefab = null;
 
         SyncList<int> _playerCards = new SyncList<int>();
 
@@ -25,7 +28,11 @@ namespace Network {
 
         private PlayerController _controller = null;
 
+        private List<ItemCard> _cards = new List<ItemCard>();
+
         public event Action<bool, string> onChangeActivePlayer;
+
+        public event Action<int> onItemCardsChanged;
 
         private AbilityManager _abilityManager = new AbilityManager();
 
@@ -54,6 +61,8 @@ namespace Network {
             _abilityManager.onWeakenStorm += HandleOnWeakenStorm;
             _abilityManager.onShowCards += HandleOnShowCards;
             _abilityManager.onControlOtherCharacter += HandleControlOtherCharacter;
+
+            _playerCards.Callback += HandleItemCardOperationFromServer;
         }
 
         #region Server
@@ -124,6 +133,29 @@ namespace Network {
         [Client]
         private void HandleChangePlayer(bool oldValue, bool newValue) {
             onChangeActivePlayer?.Invoke(newValue, GameManager.Instance.ActivePlayerName);
+        }
+
+        [Client]
+        public void ShowSpecialCardDialogue() {
+            bool abilityViewWasOpened = _openedAbilityActionInstance != null;
+
+            if (!abilityViewWasOpened) {
+                _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
+                _openedAbilityActionInstance.Initialize();
+            }
+
+            foreach (ItemCard itemCard in _cards) {
+                SelectItemUI itemSelect =
+                    Instantiate(_selectItemPrefab, Vector3.zero, Quaternion.identity);
+                itemSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                itemSelect.transform.localScale = Vector3.one;
+                itemSelect.Initialize(itemCard.CardName);
+                itemSelect.gameObject.GetComponentInChildren<ItemCardToolDescription>().card =
+                    itemCard;
+            }
+            
+            
+            _openedAbilityActionInstance.onCancel += HandleItemDialogueClose;
         }
 
         [Client]
@@ -236,6 +268,13 @@ namespace Network {
         }
 
         [Client]
+        private void HandleItemDialogueClose() {
+            _openedAbilityActionInstance.onCancel -= HandleItemDialogueClose;
+            Destroy(_openedAbilityActionInstance.gameObject);
+            _openedAbilityActionInstance = null;
+        }
+
+        [Client]
         private void HandleSpecialActionDialogueClose() {
             if (_openedAbilityActionInstance == null) return;
             foreach (Transform child in _openedAbilityActionInstance.GetActionContentHolderTransform()) {
@@ -323,6 +362,20 @@ namespace Network {
         [Client]
         public void GiveCardToThePlayer(int cardId, Player player) {
             CmdGiveCardToThePlayer(cardId, player);
+        }
+
+        [Client]
+        private void HandleItemCardOperationFromServer(SyncList<int>.Operation op, int itemIndex, int oldItem,
+            int newItem) {
+            onItemCardsChanged?.Invoke(_playerCards.Count);
+            ItemCard[] cards = Resources.LoadAll<ItemCard>("ItemCards");
+
+            foreach (ItemCard itemCard in cards) {
+                if (newItem == itemCard.CardId) {
+                    ItemCard itemCardObject = Instantiate(itemCard, Vector3.zero, Quaternion.identity);
+                    _cards.Add(itemCardObject);
+                }
+            }
         }
 
         #endregion

@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Cards.PlayCards.Items;
 using Game.Cards.PlaygroundCards;
 using Game.Characters.Ability;
 using TMPro;
@@ -19,10 +20,12 @@ namespace Game.UI {
 
         private void Start() {
             cancelButton.onClick.AddListener(HandleCancel);
+            ItemCardToolDescription.onHover += HandleItemDescription;
         }
 
         private void OnDestroy() {
             cancelButton.onClick.RemoveListener(HandleCancel);
+            ItemCardToolDescription.onHover -= HandleItemDescription;
         }
 
         private void HandleCancel() {
@@ -33,7 +36,8 @@ namespace Game.UI {
             return actionContent.transform;
         }
 
-        public void Initialize(AbilityType abilityType, PlaygroundCard source, PlaygroundCard destination, bool canCancel = true) {
+        public void Initialize(AbilityType abilityType = AbilityType.Archeologist, PlaygroundCard source = null,
+            PlaygroundCard destination = null, bool canCancel = true) {
             waterInputField.gameObject.SetActive(abilityType == AbilityType.WaterCarrier);
             SourceCard = source;
             DestinationCard = destination;
@@ -41,6 +45,14 @@ namespace Game.UI {
                 cancelButton.gameObject.SetActive(false);
                 cancelButton.onClick.RemoveListener(HandleCancel);
             }
+        }
+
+        private void HandleItemDescription(ItemCard card) {
+            if (card == null) {
+                description.text = "";
+                return;
+            }
+            description.text = card.Description;
         }
 
         public int GetInputValue() {

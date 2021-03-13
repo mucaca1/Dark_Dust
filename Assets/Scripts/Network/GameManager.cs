@@ -214,7 +214,7 @@ namespace Game {
                     PlaygroundCard card = stack.Pop();
                     card.SetIndexPosition(new Vector2(i, j));
                     card.UpdatePosition();
-                    card.ExcavateCard();
+                    // card.ExcavateCard(); only for testing
 
                     if (card.CardType == PlaygroundCardType.Start) {
                         card.ExcavateCard();

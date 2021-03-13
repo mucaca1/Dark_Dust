@@ -23,6 +23,8 @@ namespace Game.UI {
 
         [SerializeField] private Button _endControllingAnotherCharacterButton = null;
 
+        [SerializeField] private Button _showItemCardsButton = null;
+
         private Player _player = null;
         private PlayerController _controller = null;
 
@@ -35,6 +37,8 @@ namespace Game.UI {
             GameManager.onAvaibleStepsChanged += HandleActionCounter;
             
             _endControllingAnotherCharacterButton.gameObject.SetActive(false);
+
+            _showItemCardsButton.onClick.AddListener(MakeActionWithCard);
         }
 
         private void Update() {
@@ -47,6 +51,9 @@ namespace Game.UI {
                     HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
                     _player.AbilityManager.onControlOtherCharacter += HandleControlAnotherCharacter;
                     _endControllingAnotherCharacterButton.onClick.AddListener(HandleEndOfControllingAnotherCharacter);
+
+                    _player.onItemCardsChanged += HandleItemCardCount;
+                    HandleItemCardCount(0);
                 }
             }
         }
@@ -126,6 +133,14 @@ namespace Game.UI {
             excavateButton.interactable = true;
             removeSandButton.interactable = true;
             pickUpAPartButton.interactable = true;
+        }
+
+        private void HandleItemCardCount(int count) {
+            _showItemCardsButton.gameObject.SetActive(count != 0);
+        }
+
+        private void MakeActionWithCard() {
+            _player.ShowSpecialCardDialogue();
         }
     }
 }

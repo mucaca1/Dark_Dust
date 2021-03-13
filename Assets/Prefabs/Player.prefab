@@ -145,6 +145,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 0
   serverOnly: 0
+  visible: 0
   m_AssetId: 
   hasSpawned: 0
 --- !u!114 &3579237461954983866
@@ -162,7 +163,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   _specialActionMenuPrefab: {fileID: 4820301463045079747, guid: 0c88db8027464f94dbdbcd250c701f78, type: 3}
-  _selectPlayerPrefab: {fileID: 530990115492742385, guid: 0b64c35638174ed449a1a438a6ec6bfd, type: 3}
+  _selectPlayerPrefab: {fileID: 530990115492742385, guid: 50c3ed3dbe34f2b42bec91c26117ef89, type: 3}
+  _selectItemPrefab: {fileID: 569086035802579630, guid: 0b64c35638174ed449a1a438a6ec6bfd, type: 3}
   _playerName: PlayerName
 --- !u!114 &83124752965086984
 MonoBehaviour:
@@ -199,6 +201,7 @@ MonoBehaviour:
   renderer: {fileID: 7982367936583612739}
   _positionIndex: {x: 0, y: 0}
   _position: {fileID: 0}
+  _characterInControl: {fileID: 0}
 --- !u!114 &7214548167954324723
 MonoBehaviour:
   m_ObjectHideFlags: 0
