@@ -14,7 +14,7 @@ namespace Game.Cards.PlayCards.Tornado {
                 List<Character> charactersOnCard = card.GetCharacters();
                 if (charactersOnCard.Count == 0) continue;
                 
-                if (card.CardType == PlaygroundCardType.Cave) continue;
+                if (card.CardType == PlaygroundCardType.Cave || card.CoveredBySolarShield) continue;
                 
                 foreach (Character character in charactersOnCard) {
                     character.DrinkWater();

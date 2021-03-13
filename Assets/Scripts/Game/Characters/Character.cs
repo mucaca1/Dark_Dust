@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Cards.PlayCards.Items;
 using Game.Cards.PlaygroundCards;
 using Game.Characters.Ability;
 using Mirror;
@@ -30,6 +31,8 @@ namespace Game.Characters {
         [SerializeField] private PlaygroundCard _position = null;
         [SerializeField] private Character _characterInControl = null;
 
+        private CardAction _cardAbility = CardAction.None;
+
         public static event Action<Character> onCharacterInitialized;
         public static event Action<Character, int, int> onWaterValueChanged;
 
@@ -56,6 +59,11 @@ namespace Game.Characters {
         public Character CharacterInControl {
             get => _characterInControl;
             set => _characterInControl = value;
+        }
+
+        public CardAction CardAbility {
+            get => _cardAbility;
+            set => _cardAbility = value;
         }
 
         public override void OnStartClient() {
@@ -140,6 +148,31 @@ namespace Game.Characters {
         [Server]
         public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn && isAction) return;
+
+            if (_cardAbility != CardAction.None) {
+                if (_cardAbility == CardAction.TimeThrottle) {
+                    GameManager.Instance.AddAction(2);
+                } else if (_cardAbility == CardAction.SecretWaterReserve) {
+                    foreach (Character character in _position.GetCharacters()) {
+                        character.AddWater(2);
+                    }
+                } else if (_cardAbility == CardAction.SolarShield) {
+                    _position.SetSolarShield();
+                }
+
+                int i = -1;
+                foreach (ItemCard itemCard in GetComponent<Player>().Cards) {
+                    if (itemCard.Action == _cardAbility) {
+                        i = itemCard.CardId;
+                        break;
+                    }
+                }
+                
+                GetComponent<Player>().RemoveCard(i);
+                
+                return;
+            }
+            
             if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
                 case PlayerAction.WALK:
@@ -174,7 +207,7 @@ namespace Game.Characters {
         public void RemoveWater(int water) {
             ServerRemoveWater(water);
         }
-        
+
         [Command]
         private void CmdDoActionWithCharacter(Character character, PlaygroundCard card) {
             character.CharacterInControl.SetNewPosition(card);
@@ -208,7 +241,8 @@ namespace Game.Characters {
 
             if (!card.CanActivePlayerDoAction(_characterInControl, this == _characterInControl)) return;
             if (specialAction && action == PlayerAction.WALK) {
-                GetComponent<Player>().ShowSpecialActionDialogue(_characterInControl.Ability, _characterInControl, Position, card);
+                GetComponent<Player>()
+                    .ShowSpecialActionDialogue(_characterInControl.Ability, _characterInControl, Position, card);
             }
             else {
                 if (_characterInControl.extraMoveSteps == 0) {

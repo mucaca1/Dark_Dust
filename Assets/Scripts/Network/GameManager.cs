@@ -246,6 +246,11 @@ namespace Game {
         }
 
         [Server]
+        public void AddAction(int count) {
+            _stepsRemaning += count;
+        }
+
+        [Server]
         private void GenerateStormDeck() {
             _tornadoCards.Clear();
             int moveDirection = 0;
@@ -326,6 +331,10 @@ namespace Game {
             _stepsRemaning = _maxSteps;
             _activePlayer.StartTurn();
             _activePlayerName = _activePlayer.PlayerName;
+            
+            foreach (PlaygroundCard playgroundCard in _playgroundCards) {
+                playgroundCard.CoveredBySolarShield = false;
+            }
         }
 
         [Server]

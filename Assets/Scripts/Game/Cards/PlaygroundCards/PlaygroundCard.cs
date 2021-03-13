@@ -34,6 +34,8 @@ namespace Game.Cards.PlaygroundCards {
         protected Vector3 playgroundStartPosition;
         [SyncVar] protected Vector2 indexPosition;
 
+        private bool _coveredBySolarShield = false;
+
         public PlaygroundCardType CardType => _cardType;
         public CardDirection CardDirection => _cardDirection;
         public int SandCount => _sandCount;
@@ -44,6 +46,11 @@ namespace Game.Cards.PlaygroundCards {
 
         private Character[] _stayingPositionPlayer = new Character[5];
         public bool IsRevealed => _isRevealed;
+
+        public bool CoveredBySolarShield {
+            get => _coveredBySolarShield;
+            set => _coveredBySolarShield = value;
+        }
 
         public static event Action onAddSand;
         public static event Action onRemoveSand;
@@ -321,6 +328,11 @@ namespace Game.Cards.PlaygroundCards {
         public void RemoveSand(int count = 1) {
             _sandCount = Mathf.Max(0, _sandCount - count);
             onRemoveSand?.Invoke();
+        }
+
+        [Server]
+        public void SetSolarShield() {
+            _coveredBySolarShield = true;
         }
 
         [Server]

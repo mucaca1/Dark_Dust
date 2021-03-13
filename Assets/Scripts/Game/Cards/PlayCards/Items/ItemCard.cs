@@ -6,12 +6,15 @@ namespace Game.Cards.PlayCards.Items {
 
         [SerializeField] private string _cardName;
         [SerializeField] private string _description;
+        [SerializeField] private CardAction action;
 
         public int CardId => cardId;
 
         public string CardName => _cardName;
 
         public string Description => _description;
+
+        public CardAction Action => action;
 
         public virtual void DoSpecialAction() {
             Debug.Log("Special Action");

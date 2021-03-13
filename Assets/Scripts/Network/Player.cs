@@ -45,6 +45,8 @@ namespace Network {
             set => _playerCards = value;
         }
 
+        public List<ItemCard> Cards => _cards;
+
 
         public string PlayerName {
             get => _playerName;
@@ -77,6 +79,11 @@ namespace Network {
         [Server]
         public void StartTurn() {
             isYourTurn = true;
+        }
+
+        public void RemoveCard(int cardId) {
+            if (!_playerCards.Contains(cardId)) return;
+            _playerCards.Remove(cardId);
         }
 
         [Command]
@@ -411,7 +418,13 @@ namespace Network {
                 ShowSpecialActionDialogue(AbilityType.GiveItem, GetComponent<Character>(),
                     GetComponent<Character>().Position, null, cardId);
             } else if (abilityType == AbilityType.UseItem) {
-                
+                foreach (ItemCard itemCard in _cards) {
+                    if (itemCard.CardId == cardId) {
+                        GetComponent<Character>().CardAbility = itemCard.Action;
+                    }
+                }
+
+                GetComponent<Character>().CmdDoAction(PlayerAction.WALK, GetComponent<Character>().Position, true);
             }
         }
 
