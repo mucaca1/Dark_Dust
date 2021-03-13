@@ -5,6 +5,8 @@
         Explorer,
         Meteorologist,
         Navigator,
-        WaterCarrier
+        WaterCarrier,
+        GiveItem,
+        UseItem
     }
 }

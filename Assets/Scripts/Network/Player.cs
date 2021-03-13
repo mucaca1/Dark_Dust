@@ -63,6 +63,8 @@ namespace Network {
             _abilityManager.onControlOtherCharacter += HandleControlOtherCharacter;
 
             _playerCards.Callback += HandleItemCardOperationFromServer;
+
+            SelectItemUI.onItemActionSelect += HandleItemAction;
         }
 
         #region Server
@@ -114,7 +116,7 @@ namespace Network {
 
 
         [Command]
-        private void CmdGiveCardToThePlayer(int cardId, Player player) {
+        public void CmdGiveCardToThePlayer(int cardId, Player player) {
             if (GetComponent<Character>().Position != player.GetComponent<Character>().Position) return;
             if (!_playerCards.Contains(cardId)) return;
             _playerCards.Remove(cardId);
@@ -149,7 +151,7 @@ namespace Network {
                     Instantiate(_selectItemPrefab, Vector3.zero, Quaternion.identity);
                 itemSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
                 itemSelect.transform.localScale = Vector3.one;
-                itemSelect.Initialize(itemCard.CardName);
+                itemSelect.Initialize(itemCard.CardName, itemCard.CardId);
                 itemSelect.gameObject.GetComponentInChildren<ItemCardToolDescription>().card =
                     itemCard;
             }
@@ -159,12 +161,32 @@ namespace Network {
         }
 
         [Client]
-        public void ShowSpecialActionDialogue(Character character, PlaygroundCard source, PlaygroundCard destination) {
+        public void ShowSpecialActionDialogue(AbilityType ability, Character character, PlaygroundCard source, PlaygroundCard destination, int index = -1) {
             bool abilityViewWasOpened = _openedAbilityActionInstance != null;
 
             if (!abilityViewWasOpened) {
                 _openedAbilityActionInstance = Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
-                _openedAbilityActionInstance.Initialize(character.Ability, source, destination);
+                _openedAbilityActionInstance.Initialize(ability, source, destination);
+            }
+
+            if (ability == AbilityType.GiveItem) {
+                foreach (Character ch in character.Position.GetCharacters()) {
+                    if (ch == character) continue;
+                    if (ch.Position != source) continue;
+
+                    SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    playerSelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                    value.gameObject = ch.GetComponent<Player>().gameObject;
+                    value.itemName = ch.GetComponent<Player>().PlayerName;
+                    value.itemColor = ch.GetComponent<Player>().PlayerColor;
+                    value.index = index;
+                    playerSelect.Initialize(value, ability);
+                    playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+                _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
+                return;
             }
 
             if (destination.CardType == PlaygroundCardType.Tornado && _abilityManager.CanClockOnTornado(character)) {
@@ -172,7 +194,7 @@ namespace Network {
                     HandleSpecialActionDialogueClose();
                     _openedAbilityActionInstance =
                         Instantiate(_specialActionMenuPrefab, Vector3.zero, Quaternion.identity);
-                    _openedAbilityActionInstance.Initialize(character.Ability, source, destination, false);
+                    _openedAbilityActionInstance.Initialize(ability, source, destination, false);
 
                     CmdShowNextCards();
                 }
@@ -186,7 +208,7 @@ namespace Network {
                         value.gameObject = i % 2 == 0 ? destination.gameObject : null;
                         value.itemName = i % 2 == 0 ? "Skip one tornado card" : "Show tornado cards";
                         value.itemColor = i % 2 == 0 ? Color.black : Color.gray;
-                        playerSelect.Initialize(value, character.Ability);
+                        playerSelect.Initialize(value, ability);
                         playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                     }
                 }
@@ -201,7 +223,7 @@ namespace Network {
                     value.gameObject = player.gameObject;
                     value.itemName = player.PlayerName;
                     value.itemColor = player.PlayerColor;
-                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.Initialize(value, ability);
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
             }
@@ -215,7 +237,7 @@ namespace Network {
                     value.gameObject = source.gameObject;
                     value.itemName = source.CardType.ToString();
                     value.itemColor = Color.black;
-                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.Initialize(value, ability);
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
 
@@ -233,7 +255,7 @@ namespace Network {
                     value.itemName = ch.GetComponent<Player>().PlayerName;
                     value.itemColor = ch.GetComponent<Player>().PlayerColor;
                     value.index = ch.ExtraMoveSteps;
-                    playerSelect.Initialize(value, character.Ability);
+                    playerSelect.Initialize(value, ability);
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
             }
@@ -244,9 +266,10 @@ namespace Network {
 
         [Client]
         private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject, int index) {
+            if (!hasAuthority) return;
             Character source = NetworkClient.connection.identity.GetComponent<Character>();
             if (ability == AbilityType.Meteorologist && index == -1 && selectedObject == null) {
-                ShowSpecialActionDialogue(source, source.Position, GameManager.Instance.Tornado);
+                ShowSpecialActionDialogue(source.Ability, source, source.Position, GameManager.Instance.Tornado);
             }
             else {
                 if (source.ExtraMoveSteps != 0 && ability == AbilityType.Climber) {
@@ -278,7 +301,9 @@ namespace Network {
         private void HandleSpecialActionDialogueClose() {
             if (_openedAbilityActionInstance == null) return;
             foreach (Transform child in _openedAbilityActionInstance.GetActionContentHolderTransform()) {
-                child.GetComponent<SelectPlayerUI>().onValueSelected -= HandleSpecialActionSelectedPlayer;
+                if (child.TryGetComponent(out SelectPlayerUI playerUI)) {
+                    playerUI.onValueSelected -= HandleSpecialActionSelectedPlayer;
+                }
                 Destroy(child.gameObject);
             }
 
@@ -375,6 +400,18 @@ namespace Network {
                     ItemCard itemCardObject = Instantiate(itemCard, Vector3.zero, Quaternion.identity);
                     _cards.Add(itemCardObject);
                 }
+            }
+        }
+
+        [Client]
+        private void HandleItemAction(int cardId, AbilityType abilityType) {
+            if (!hasAuthority) return;
+            if (abilityType == AbilityType.GiveItem) {
+                HandleSpecialActionDialogueClose();
+                ShowSpecialActionDialogue(AbilityType.GiveItem, GetComponent<Character>(),
+                    GetComponent<Character>().Position, null, cardId);
+            } else if (abilityType == AbilityType.UseItem) {
+                
             }
         }
 

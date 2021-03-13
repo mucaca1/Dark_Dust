@@ -1,5 +1,6 @@
 ﻿using System;
 using Game.Cards.PlaygroundCards;
+using Network;
 using UnityEngine;
 
 namespace Game.Characters.Ability {
@@ -102,7 +103,7 @@ namespace Game.Characters.Ability {
                     }
 
                     break;
-                
+
                 case AbilityType.Meteorologist:
                     if (index == -1) {
                         if (GameManager.Instance.ActualStormTickMark == 0) return;
@@ -111,15 +112,24 @@ namespace Game.Characters.Ability {
                     else {
                         onShowCards?.Invoke(index);
                     }
-                    
+
                     onDoAction?.Invoke();
                     break;
-                
+
                 case AbilityType.Navigator:
                     if (selectedObject.TryGetComponent(out selectedCharacter)) {
                         sourceCharacter.CharacterInControl = selectedCharacter;
                         onControlOtherCharacter?.Invoke();
                     }
+
+                    break;
+
+                case AbilityType.GiveItem:
+                    if (selectedObject.TryGetComponent(out selectedCharacter)) {
+                        sourceCharacter.GetComponent<Player>()
+                            .CmdGiveCardToThePlayer(index, selectedCharacter.GetComponent<Player>());
+                    }
+
                     break;
             }
         }

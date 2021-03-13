@@ -124,10 +124,11 @@ namespace Game.Cards.PlaygroundCards {
 
         public List<Character> GetCharacters() {
             List<Character> characters = new List<Character>();
-            for (var i = 0; i < _stayingPositionPlayer.Length; i++) {
-                if (_stayingPositionPlayer[i] == null) continue;
-
-                characters.Add(_stayingPositionPlayer[i]);
+            
+            foreach (Character character in FindObjectsOfType<Character>()) {
+                if (character.Position == this) {
+                    characters.Add(character);
+                }
             }
 
             return characters;
@@ -215,7 +216,7 @@ namespace Game.Cards.PlaygroundCards {
         public bool CanCharacterDoRemoveSandAction(Character character) {
             if (_cardType == PlaygroundCardType.Tornado) return false;
             if (!(CanSeeThisCard(character.Position) ||
-                  GetComponent<Player>().AbilityManager.CanMoveHorizontal(character, this))) return false;
+                  character.GetComponent<Player>().AbilityManager.CanMoveHorizontal(character, this))) return false;
             return _sandCount > 0;
         }
 

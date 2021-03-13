@@ -208,7 +208,7 @@ namespace Game.Characters {
 
             if (!card.CanActivePlayerDoAction(_characterInControl, this == _characterInControl)) return;
             if (specialAction && action == PlayerAction.WALK) {
-                GetComponent<Player>().ShowSpecialActionDialogue(_characterInControl, Position, card);
+                GetComponent<Player>().ShowSpecialActionDialogue(_characterInControl.Ability, _characterInControl, Position, card);
             }
             else {
                 if (_characterInControl.extraMoveSteps == 0) {
