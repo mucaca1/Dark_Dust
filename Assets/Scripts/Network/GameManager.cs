@@ -10,6 +10,7 @@ using Game.UI;
 using Mirror;
 using Network;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
@@ -39,7 +40,7 @@ namespace Game {
         [SerializeField] private Transform playGroundStartTransform = null;
         [SerializeField] private GameObject playgroundCardPrefab = null;
         [SerializeField] private CardSet[] _tornadoCardsPrefab = new CardSet[0];
-        [SerializeField] private CardSet[] _itemsCardsPrefab = new CardSet[0];
+        private Queue<int> _itemsCards = new Queue<int>();
 
         private Queue<TornadoDeckCardData> _tornadoCards = new Queue<TornadoDeckCardData>();
 
@@ -106,6 +107,7 @@ namespace Game {
                     : "Playground cards was loaded successfully");
 
                 GenerateNewPlayGround();
+                GenerateItemCards();
                 getTornadoNextCards += ServerGetTornadoCards;
             }
 
@@ -136,6 +138,20 @@ namespace Game {
         }
 
         #region Server
+        
+        
+        [Server]
+        private void GenerateItemCards() {
+            List<int> seed = new List<int>();
+            for (int i = 2; i < 14; i++) {
+                seed.Add((int)(i / 2));
+            }
+            var shuffledcards = seed.OrderBy(a => Guid.NewGuid()).ToList();
+            
+            foreach (int i in shuffledcards) {
+                _itemsCards.Enqueue(i);
+            }
+        }
 
         [Server]
         public void StormTickUp() {
