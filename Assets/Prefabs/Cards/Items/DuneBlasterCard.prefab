@@ -31,6 +31,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  cardId: 1
+  _cardName: Dune Blaster
+  _description: Remove all sand from your tile or from an adjacenttile
 --- !u!1001 &1524202989312852412
 PrefabInstance:
   m_ObjectHideFlags: 0

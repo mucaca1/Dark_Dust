@@ -31,6 +31,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  cardId: 6
+  _cardName: Time Throttle
+  _description: Take 2 more actions during a turn.
 --- !u!1001 &7659863913451495791
 PrefabInstance:
   m_ObjectHideFlags: 0

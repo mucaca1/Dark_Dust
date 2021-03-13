@@ -6,8 +6,12 @@ using UnityEngine;
 namespace Game.Cards.PlayCards.Items {
     public class ItemCard : NetworkBehaviour {
 
-        private string _cardName;
-        private string _description;
+        [SerializeField] private int cardId = -1;
+
+        [SerializeField] private string _cardName;
+        [SerializeField] private string _description;
+
+        public int CardId => cardId;
 
         public virtual void DoSpecialAction() {
             Debug.Log("Special Action");

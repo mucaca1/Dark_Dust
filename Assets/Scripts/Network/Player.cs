@@ -11,6 +11,8 @@ namespace Network {
     public class Player : NetworkBehaviour {
         [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
         [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
+        
+        SyncList<int> _playerCards = new SyncList<int>();
 
         private SpecialAbilityActionUI _openedAbilityActionInstance = null;
 
