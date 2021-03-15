@@ -140,6 +140,11 @@ namespace Network {
 
         #region Client
 
+        [ClientRpc]
+        public void ActionDialogueCloseRpc() {
+            HandleSpecialActionDialogueClose();
+        }
+
         [Client]
         private void HandleDustTurn() {
             onChangeActivePlayer?.Invoke(false, "Desert");

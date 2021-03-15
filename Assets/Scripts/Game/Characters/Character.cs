@@ -171,7 +171,7 @@ namespace Game.Characters {
                     }
                     else {
                         _autoUseAbility = false;
-                        GetComponent<Player>().HandleSpecialActionDialogueClose();
+                        GetComponent<Player>().ActionDialogueCloseRpc();
                         return;
                     }
                     
@@ -188,7 +188,7 @@ namespace Game.Characters {
                     CardAbility = CardAction.None;
 
                     // TODO Need call on client side!!!
-                    GetComponent<Player>().HandleSpecialActionDialogueClose();
+                    GetComponent<Player>().ActionDialogueCloseRpc();
 
                     return;
                 }
