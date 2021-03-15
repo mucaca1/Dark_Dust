@@ -151,6 +151,7 @@ namespace Game {
             foreach (int i in shuffledcards) {
                 _itemsCards.Enqueue(i);
             }
+            // _itemsCards.Enqueue(6);
         }
 
         [Server]
@@ -223,6 +224,10 @@ namespace Game {
                     if ((i == 0 && j == 2) || (i == 1 && j == 1) || (i == 1 && j == 3) ||
                         (i == 2 && j == 0) || (i == 2 && j == 4) || (i == 3 && j == 1) ||
                         (i == 3 && j == 3) || (i == 4 && j == 2)) {
+                        card.AddSand();
+                        card.AddSand();
+                        card.AddSand();
+                        card.AddSand();
                         card.AddSand();
                     }
                 }
@@ -342,18 +347,18 @@ namespace Game {
             Debug.Log("Desert is in command");
             int pickUpCards = _actualStormTickMark;
             for (int i = 0; i < pickUpCards; i++) {
-                if (_tornadoCards.Count == 0)
-                    GenerateStormDeck();
-                TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
-                onTornadoCardChanged?.Invoke(_tornadoCards.Count);
-                GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
-                if (card.TryGetComponent(out TornadoMove move)) {
-                    move.Steps = tornadoCard.steps;
-                    move.Direction = tornadoCard.direction;
-                }
-
-                card.GetComponent<TornadoCard>().DoAction();
-                Destroy(card);
+                // if (_tornadoCards.Count == 0)
+                //     GenerateStormDeck();
+                // TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
+                // onTornadoCardChanged?.Invoke(_tornadoCards.Count);
+                // GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
+                // if (card.TryGetComponent(out TornadoMove move)) {
+                //     move.Steps = tornadoCard.steps;
+                //     move.Direction = tornadoCard.direction;
+                // }
+                //
+                // card.GetComponent<TornadoCard>().DoAction();
+                // Destroy(card);
                 yield return new WaitForSeconds(1);
             }
 

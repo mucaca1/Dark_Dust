@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Cards.PlayCards.Items;
 using Game.Characters;
 using Game.Characters.Ability;
 using Mirror;
@@ -34,7 +35,7 @@ namespace Game.Cards.PlaygroundCards {
         protected Vector3 playgroundStartPosition;
         [SyncVar] protected Vector2 indexPosition;
 
-        private bool _coveredBySolarShield = false;
+        [SyncVar(hook = nameof(HandleSolarShield))]private bool _coveredBySolarShield = false;
 
         public PlaygroundCardType CardType => _cardType;
         public CardDirection CardDirection => _cardDirection;
@@ -144,6 +145,8 @@ namespace Game.Cards.PlaygroundCards {
 
         public bool CanActivePlayerDoAction(Character character, bool isOwnerCharacter) {
             if (!character.gameObject.GetComponent<Player>().IsYourTurn && isOwnerCharacter) return false;
+
+            if (character.CardAbility == CardAction.Terrascope && _cardType != PlaygroundCardType.Tornado) return true;
 
             if (!isOwnerCharacter) {
                 return CanCharacterDoMoveAction(character,
@@ -399,7 +402,16 @@ namespace Game.Cards.PlaygroundCards {
 
         [ClientCallback]
         void OnMouseExit() {
-            _hoverMark.SetActive(false);
+            _hoverMark.SetActive(_coveredBySolarShield);
+            if (_coveredBySolarShield) {
+                _hoverMark.GetComponentInChildren<Image>().color = Color.blue;
+            }
+        }
+
+        [Client]
+        private void HandleSolarShield(bool oldValue, bool newValue) {
+            _hoverMark.SetActive(newValue);
+            _hoverMark.GetComponentInChildren<Image>().color = Color.blue;
         }
 
         #endregion

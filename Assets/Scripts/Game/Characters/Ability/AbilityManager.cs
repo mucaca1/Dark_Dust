@@ -131,6 +131,15 @@ namespace Game.Characters.Ability {
                     }
 
                     break;
+                
+                case AbilityType.UseItem:
+                    if (selectedObject.TryGetComponent(out selectedCharacter)) {
+                        onPositionChange?.Invoke(selectedCharacter, destination);
+                        onPositionChange?.Invoke(sourceCharacter, destination);
+                        onDoAction?.Invoke();
+                    }
+                    
+                    break;
             }
         }
 

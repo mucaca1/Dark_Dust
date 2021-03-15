@@ -31,7 +31,9 @@ namespace Game.Characters {
         [SerializeField] private PlaygroundCard _position = null;
         [SerializeField] private Character _characterInControl = null;
 
+        [SyncVar] private int _cardAbilityIndex = -1;
         private CardAction _cardAbility = CardAction.None;
+        [SyncVar] private bool _autoUseAbility = true;
 
         public static event Action<Character> onCharacterInitialized;
         public static event Action<Character, int, int> onWaterValueChanged;
@@ -62,9 +64,13 @@ namespace Game.Characters {
         }
 
         public CardAction CardAbility {
-            get => _cardAbility;
-            set => _cardAbility = value;
+            get => (CardAction) _cardAbilityIndex;
+            set { _cardAbility = value;
+                _cardAbilityIndex = value.GetHashCode();
+            }
         }
+
+        public bool AutoUseAbility => _autoUseAbility;
 
         public override void OnStartClient() {
             GameManager.onPlaygroundLoaded += HandlePlaygroundLoaded;
@@ -131,8 +137,8 @@ namespace Game.Characters {
         }
 
         [Server]
-        private void ServerRemoveSand(PlaygroundCard card) {
-            card.RemoveSand(1 + GetComponent<Player>().AbilityManager.RemoveExtraSandAbility(this));
+        private void ServerRemoveSand(PlaygroundCard card, int modifier) {
+            card.RemoveSand(1 + modifier);
         }
 
         [Server]
@@ -149,30 +155,69 @@ namespace Game.Characters {
         public void ServerDoAction(PlayerAction action, PlaygroundCard card, bool isAction) {
             if (!connectionToClient.identity.GetComponent<Player>().IsYourTurn && isAction) return;
 
-            if (_cardAbility != CardAction.None) {
-                if (_cardAbility == CardAction.TimeThrottle) {
-                    GameManager.Instance.AddAction(2);
-                } else if (_cardAbility == CardAction.SecretWaterReserve) {
-                    foreach (Character character in _position.GetCharacters()) {
-                        character.AddWater(2);
+            if (CardAbility != CardAction.None) {
+                int i = -1;
+                if (_autoUseAbility) {
+                    if (CardAbility == CardAction.TimeThrottle) {
+                        GameManager.Instance.AddAction(2);
                     }
-                } else if (_cardAbility == CardAction.SolarShield) {
-                    _position.SetSolarShield();
+                    else if (CardAbility == CardAction.SecretWaterReserve) {
+                        foreach (Character character in _position.GetCharacters()) {
+                            character.AddWater(2);
+                        }
+                    }
+                    else if (CardAbility == CardAction.SolarShield) {
+                        _position.SetSolarShield();
+                    }
+                    else {
+                        _autoUseAbility = false;
+                        GetComponent<Player>().HandleSpecialActionDialogueClose();
+                        return;
+                    }
+                    
+                    foreach (ItemCard itemCard in GetComponent<Player>().Cards) {
+                        if (itemCard.Action == CardAbility) {
+                            i = itemCard.CardId;
+                            break;
+                        }
+                    }
+
+                    GetComponent<Player>().RemoveCard(i);
+                    
+                    _autoUseAbility = true;
+                    CardAbility = CardAction.None;
+
+                    // TODO Need call on client side!!!
+                    GetComponent<Player>().HandleSpecialActionDialogueClose();
+
+                    return;
                 }
 
-                int i = -1;
+                if (CardAbility == CardAction.DuneBlaster) {
+                    ServerRemoveSand(card, 100);
+                } else if (CardAbility == CardAction.JetPack) {
+                    if (card.CanCharacterDoAction(action, this)) {
+                        SetNewPosition(card);
+                    }
+                }
+                else {
+                    DoCardActionRpc(CardAbility, card);
+                }
+                
                 foreach (ItemCard itemCard in GetComponent<Player>().Cards) {
-                    if (itemCard.Action == _cardAbility) {
+                    if (itemCard.Action == CardAbility) {
                         i = itemCard.CardId;
                         break;
                     }
                 }
                 
+                _autoUseAbility = true;
+                CardAbility = CardAction.None;
+
                 GetComponent<Player>().RemoveCard(i);
-                
                 return;
             }
-            
+
             if (!card.CanCharacterDoAction(action, this)) return;
             switch (action) {
                 case PlayerAction.WALK:
@@ -182,7 +227,7 @@ namespace Game.Characters {
                     ServerExcavate(card);
                     break;
                 case PlayerAction.REMOVE_SAND:
-                    ServerRemoveSand(card);
+                    ServerRemoveSand(card, GetComponent<Player>().AbilityManager.RemoveExtraSandAbility(this));
                     break;
                 case PlayerAction.PICK_UP_A_PART:
                     ServerPickUpAPart(card);
@@ -225,6 +270,12 @@ namespace Game.Characters {
             CharacterInControl = this;
         }
 
+        [Command]
+        public void CmdResetItemCard() {
+            _autoUseAbility = true;
+            CardAbility = CardAction.None;
+        }
+
         #endregion
 
         #region Client
@@ -243,6 +294,10 @@ namespace Game.Characters {
             if (specialAction && action == PlayerAction.WALK) {
                 GetComponent<Player>()
                     .ShowSpecialActionDialogue(_characterInControl.Ability, _characterInControl, Position, card);
+            } else if (!_autoUseAbility && CardAbility == CardAction.JetPack) {
+                // Show Dialogue
+                GetComponent<Player>()
+                    .ShowSpecialActionDialogue(AbilityType.UseItem, _characterInControl, Position, card, CardAbility.GetHashCode());
             }
             else {
                 if (_characterInControl.extraMoveSteps == 0) {
@@ -275,6 +330,17 @@ namespace Game.Characters {
         private void HandleMoveCharacterWithExtraStep(Character character, PlaygroundCard card) {
             if (!hasAuthority) return;
             CmdDoActionWithCharacter(character, card);
+        }
+
+        [ClientRpc]
+        private void DoCardActionRpc(CardAction cardAction, PlaygroundCard card) {
+            if (!GetComponent<Player>().IsYourTurn) return;
+
+            // After click check action and move character
+            if (cardAction == CardAction.Terrascope) {
+                // Show Card
+                Debug.Log("Show card");
+            }
         }
 
         #endregion

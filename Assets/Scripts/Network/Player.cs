@@ -81,6 +81,7 @@ namespace Network {
             isYourTurn = true;
         }
 
+        [Server]
         public void RemoveCard(int cardId) {
             if (!_playerCards.Contains(cardId)) return;
             _playerCards.Remove(cardId);
@@ -129,6 +130,11 @@ namespace Network {
             _playerCards.Remove(cardId);
             player.PlayerCards.Add(cardId);
         }
+        
+        [Command]
+        private void CmdSetCardAbility(CardAction itemCardAction) {
+            GetComponent<Character>().CardAbility = itemCardAction;
+        }
 
         #endregion
 
@@ -162,13 +168,14 @@ namespace Network {
                 itemSelect.gameObject.GetComponentInChildren<ItemCardToolDescription>().card =
                     itemCard;
             }
-            
-            
+
+
             _openedAbilityActionInstance.onCancel += HandleItemDialogueClose;
         }
 
         [Client]
-        public void ShowSpecialActionDialogue(AbilityType ability, Character character, PlaygroundCard source, PlaygroundCard destination, int index = -1) {
+        public void ShowSpecialActionDialogue(AbilityType ability, Character character, PlaygroundCard source,
+            PlaygroundCard destination, int index = -1) {
             bool abilityViewWasOpened = _openedAbilityActionInstance != null;
 
             if (!abilityViewWasOpened) {
@@ -192,7 +199,30 @@ namespace Network {
                     playerSelect.Initialize(value, ability);
                     playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
                 }
+
                 _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
+                return;
+            }
+
+            if (ability == AbilityType.UseItem) {
+                foreach (Character ch in character.Position.GetCharacters()) {
+                    if (ch == character) continue;
+                    if (ch.Position != source) continue;
+
+                    SelectPlayerUI playerSelect = Instantiate(_selectPlayerPrefab, Vector3.zero, Quaternion.identity);
+                    playerSelect.transform.parent = _openedAbilityActionInstance.GetActionContentHolderTransform();
+                    playerSelect.transform.localScale = Vector3.one;
+                    SelectPlayerUI.Value value = new SelectPlayerUI.Value();
+                    value.gameObject = ch.GetComponent<Player>().gameObject;
+                    value.itemName = ch.GetComponent<Player>().PlayerName;
+                    value.itemColor = ch.GetComponent<Player>().PlayerColor;
+                    value.index = index;
+                    playerSelect.Initialize(value, ability);
+                    playerSelect.onValueSelected += HandleSpecialActionSelectedPlayer;
+                }
+
+                _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
+                _openedAbilityActionInstance.onCancel += HandleDialogueCloseButton;
                 return;
             }
 
@@ -269,12 +299,14 @@ namespace Network {
 
 
             _openedAbilityActionInstance.onCancel += HandleSpecialActionDialogueClose;
+            _openedAbilityActionInstance.onCancel += HandleDialogueCloseButton;
         }
 
         [Client]
         private void HandleSpecialActionSelectedPlayer(AbilityType ability, GameObject selectedObject, int index) {
             if (!hasAuthority) return;
             Character source = NetworkClient.connection.identity.GetComponent<Character>();
+
             if (ability == AbilityType.Meteorologist && index == -1 && selectedObject == null) {
                 ShowSpecialActionDialogue(source.Ability, source, source.Position, GameManager.Instance.Tornado);
             }
@@ -305,16 +337,25 @@ namespace Network {
         }
 
         [Client]
-        private void HandleSpecialActionDialogueClose() {
+        private void HandleDialogueCloseButton() {
+            if (!hasAuthority) return;
+
+            GetComponent<Character>().CmdResetItemCard();
+        }
+
+        [Client]
+        public void HandleSpecialActionDialogueClose() {
             if (_openedAbilityActionInstance == null) return;
             foreach (Transform child in _openedAbilityActionInstance.GetActionContentHolderTransform()) {
                 if (child.TryGetComponent(out SelectPlayerUI playerUI)) {
                     playerUI.onValueSelected -= HandleSpecialActionSelectedPlayer;
                 }
+
                 Destroy(child.gameObject);
             }
 
             _openedAbilityActionInstance.onCancel -= HandleSpecialActionDialogueClose;
+            _openedAbilityActionInstance.onCancel -= HandleDialogueCloseButton;
             Destroy(_openedAbilityActionInstance.gameObject);
             _openedAbilityActionInstance = null;
         }
@@ -364,6 +405,7 @@ namespace Network {
 
         [Client]
         private void HandleOnPositionChange(Character arg1, PlaygroundCard arg2) {
+            if (!hasAuthority) return;
             CmdMoveCharacter(arg1, arg2);
         }
 
@@ -400,13 +442,27 @@ namespace Network {
         private void HandleItemCardOperationFromServer(SyncList<int>.Operation op, int itemIndex, int oldItem,
             int newItem) {
             onItemCardsChanged?.Invoke(_playerCards.Count);
-            ItemCard[] cards = Resources.LoadAll<ItemCard>("ItemCards");
+            if (op == SyncList<int>.Operation.OP_ADD) {
+                ItemCard[] cards = Resources.LoadAll<ItemCard>("ItemCards");
 
-            foreach (ItemCard itemCard in cards) {
-                if (newItem == itemCard.CardId) {
-                    ItemCard itemCardObject = Instantiate(itemCard, Vector3.zero, Quaternion.identity);
-                    _cards.Add(itemCardObject);
+                foreach (ItemCard itemCard in cards) {
+                    if (newItem == itemCard.CardId) {
+                        ItemCard itemCardObject = Instantiate(itemCard, Vector3.zero, Quaternion.identity);
+                        _cards.Add(itemCardObject);
+                    }
                 }
+            }
+
+            if (op == SyncList<int>.Operation.OP_REMOVEAT) {
+                ItemCard card = null;
+                foreach (ItemCard itemCard in _cards) {
+                    if (itemCard.CardId == oldItem) {
+                        card = itemCard;
+                    }
+                }
+
+                _cards.Remove(card);
+                Destroy(card.gameObject);
             }
         }
 
@@ -417,10 +473,11 @@ namespace Network {
                 HandleSpecialActionDialogueClose();
                 ShowSpecialActionDialogue(AbilityType.GiveItem, GetComponent<Character>(),
                     GetComponent<Character>().Position, null, cardId);
-            } else if (abilityType == AbilityType.UseItem) {
+            }
+            else if (abilityType == AbilityType.UseItem) {
                 foreach (ItemCard itemCard in _cards) {
                     if (itemCard.CardId == cardId) {
-                        GetComponent<Character>().CardAbility = itemCard.Action;
+                        CmdSetCardAbility(itemCard.Action);
                     }
                 }
 
