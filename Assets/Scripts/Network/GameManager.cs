@@ -7,10 +7,15 @@ using Game.Cards.PlaygroundCards;
 using Game.Characters;
 using Mirror;
 using Network;
+using TMPro;
 using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
+        [SyncVar(hook = nameof(HandleLoseGame))] private bool _isLose = false;
+        [SyncVar] private string loseReason = "";
+        [SerializeField] private GameObject loseScreen = null;
+        [SerializeField] private TMP_Text reasonForLoseText = null;
         [Serializable]
         private class CardSet {
             public int count = 0;
@@ -50,6 +55,8 @@ namespace Game {
         [SyncVar(hook = nameof(HandleSandStack))]
         private int _sandStackReaming = 48;
 
+        [SyncVar] private int _maxTornadoValue = -1;
+
         [SyncVar] private int _actualStormTickMark = 2;
         [SyncVar] private int _stromTickMarkValue = 2;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
@@ -82,8 +89,7 @@ namespace Game {
         public static GameManager Instance {
             get { return _gameManager; }
         }
-
-
+        
         private void Awake() {
             if (_gameManager != null && _gameManager != this) {
                 Destroy(gameObject);
@@ -139,6 +145,16 @@ namespace Game {
         #region Server
 
         [Server]
+        public void SetLoseReason(string reason) {
+            loseReason = reason;
+        }
+        
+        [Server]
+        public void SetIsLose(bool val) {
+            _isLose = val;
+        }
+
+        [Server]
         private void GenerateItemCards() {
             List<int> seed = new List<int>();
             for (int i = 2; i < 14; i++) {
@@ -162,6 +178,10 @@ namespace Game {
 
         [Server]
         private void AddSandHandler() {
+            if (_sandStackReaming == 0) {
+                SetLoseReason("You loose because you put all sand marks and you dont have any more to put.");
+                _isLose = true;
+            }
             --_sandStackReaming;
         }
 
@@ -343,18 +363,18 @@ namespace Game {
             Debug.Log("Desert is in command");
             int pickUpCards = _actualStormTickMark;
             for (int i = 0; i < pickUpCards; i++) {
-                // if (_tornadoCards.Count == 0)
-                //     GenerateStormDeck();
-                // TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
-                // onTornadoCardChanged?.Invoke(_tornadoCards.Count);
-                // GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
-                // if (card.TryGetComponent(out TornadoMove move)) {
-                //     move.Steps = tornadoCard.steps;
-                //     move.Direction = tornadoCard.direction;
-                // }
-                //
-                // card.GetComponent<TornadoCard>().DoAction();
-                // Destroy(card);
+                if (_tornadoCards.Count == 0)
+                    GenerateStormDeck();
+                TornadoDeckCardData tornadoCard = _tornadoCards.Dequeue();
+                onTornadoCardChanged?.Invoke(_tornadoCards.Count);
+                GameObject card = Instantiate(tornadoCard.cardPrefab.gameObject, Vector3.zero, Quaternion.identity);
+                if (card.TryGetComponent(out TornadoMove move)) {
+                    move.Steps = tornadoCard.steps;
+                    move.Direction = tornadoCard.direction;
+                }
+                
+                card.GetComponent<TornadoCard>().DoAction();
+                Destroy(card);
                 yield return new WaitForSeconds(1);
             }
 
@@ -538,6 +558,12 @@ namespace Game {
         [Client]
         private void HandleStepCounter(int oldValue, int newCounterValue) {
             onAvaibleStepsChanged?.Invoke(newCounterValue);
+        }
+
+        [Client]
+        private void HandleLoseGame(bool oldValue, bool newValue) {
+            reasonForLoseText.text = loseReason;
+            loseScreen.SetActive(newValue);
         }
 
         #endregion

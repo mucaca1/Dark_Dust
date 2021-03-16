@@ -541,6 +541,14 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3027841191003617932, guid: b14f0259e9328594fae24ccb24a50cfc, type: 3}
+      propertyPath: loseScreen
+      value: 
+      objectReference: {fileID: 3982899620898500214}
+    - target: {fileID: 3027841191003617932, guid: b14f0259e9328594fae24ccb24a50cfc, type: 3}
+      propertyPath: reasonForLoseText
+      value: 
+      objectReference: {fileID: 3982899620898500213}
+    - target: {fileID: 3027841191003617932, guid: b14f0259e9328594fae24ccb24a50cfc, type: 3}
       propertyPath: playGroundStartTransform
       value: 
       objectReference: {fileID: 1475362815}
@@ -1091,3 +1099,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+--- !u!114 &3982899620898500213 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2643015394405308990, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+  m_PrefabInstance: {fileID: 3982899620898500212}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &3982899620898500214 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4772208987330186561, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+  m_PrefabInstance: {fileID: 3982899620898500212}
+  m_PrefabAsset: {fileID: 0}

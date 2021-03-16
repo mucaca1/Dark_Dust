@@ -40,7 +40,6 @@ namespace Game.Characters {
         public static event Action<Character, int, int> onWaterValueChanged;
 
         private static event Action<Character, PlaygroundCard> onMoveCharacterWithExtraStep;
-        public event Action<Character> onCharacterDie;
 
         public int ExtraMoveSteps {
             get => extraMoveSteps;
@@ -136,7 +135,8 @@ namespace Game.Characters {
         public void DrinkWater() {
             _water = Mathf.Max(0, _water - 1);
             if (_water != 0) return;
-            onCharacterDie?.Invoke(this);
+            GameManager.Instance.SetLoseReason($"You loose Player {GetComponent<Player>().PlayerName} use all water.");
+            GameManager.Instance.SetIsLose(true);
         }
 
         [Server]
