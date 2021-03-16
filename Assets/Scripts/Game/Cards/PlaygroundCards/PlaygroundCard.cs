@@ -224,8 +224,8 @@ namespace Game.Cards.PlaygroundCards {
 
             if (!(CanSeeThisCard(character.Position) ||
                   player.AbilityManager.CanMoveHorizontal(character, this))) return false;
-            if (!(CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character)) &&
-                (
+            if (!(CanMoveToThisPart() || player.AbilityManager.CanMoveToCard(character)) ||
+                !(
                     character.Position.CanMoveToThisPart() ||
                     player.AbilityManager.CanMoveFromCard(character, character.Position, this)
                 )) return false;
