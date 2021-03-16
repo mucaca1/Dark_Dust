@@ -32,7 +32,7 @@ namespace Game.Characters {
         [SerializeField] private PlaygroundCard _position = null;
         [SerializeField] private Character _characterInControl = null;
 
-        [SyncVar] private int _cardAbilityIndex = -1;
+        [SyncVar] private int _cardAbilityIndex = CardAction.None.GetHashCode();
         private CardAction _cardAbility = CardAction.None;
         [SyncVar] private bool _autoUseAbility = true;
 
