@@ -143,15 +143,15 @@ namespace Game {
         [Server]
         private void GenerateItemCards() {
             List<int> seed = new List<int>();
-            for (int i = 2; i < 14; i++) {
-                seed.Add((int)(i / 2));
-            }
-            var shuffledcards = seed.OrderBy(a => Guid.NewGuid()).ToList();
+            // for (int i = 2; i < 14; i++) {
+                // seed.Add((int)(i / 2));
+            // }
+            // var shuffledcards = seed.OrderBy(a => Guid.NewGuid()).ToList();
             
-            foreach (int i in shuffledcards) {
-                _itemsCards.Enqueue(i);
-            }
-            // _itemsCards.Enqueue(6);
+            // foreach (int i in shuffledcards) {
+                // _itemsCards.Enqueue(i);
+            // }
+            _itemsCards.Enqueue(4);
         }
 
         [Server]
@@ -224,10 +224,6 @@ namespace Game {
                     if ((i == 0 && j == 2) || (i == 1 && j == 1) || (i == 1 && j == 3) ||
                         (i == 2 && j == 0) || (i == 2 && j == 4) || (i == 3 && j == 1) ||
                         (i == 3 && j == 3) || (i == 4 && j == 2)) {
-                        card.AddSand();
-                        card.AddSand();
-                        card.AddSand();
-                        card.AddSand();
                         card.AddSand();
                     }
                 }

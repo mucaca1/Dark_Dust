@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Cards.PlayCards.Items;
 using Game.Characters;
 using Game.Characters.Ability;
+using Game.UI;
 using Mirror;
 using Network;
 using TMPro;
@@ -19,6 +20,8 @@ namespace Game.Cards.PlaygroundCards {
         [SerializeField] private Transform cardReference = null;
         [SerializeField] private Transform sandSpawnerReference = null;
         [SyncVar] protected string cardName;
+        private Sprite frontImageSprite = null;
+        private Sprite backImageSprite = null;
 
         [SyncVar(hook = nameof(UpdateRotation))]
         private bool _isRevealed = false;
@@ -53,8 +56,13 @@ namespace Game.Cards.PlaygroundCards {
             set => _coveredBySolarShield = value;
         }
 
+        public Sprite FrontImageSprite => frontImageSprite;
+        public Sprite BackImageSprite => backImageSprite;
+
         public static event Action onAddSand;
         public static event Action onRemoveSand;
+
+        public static event Action<PlaygroundCard> onCardHover; 
 
         public Vector3 GetPosition() {
             return position;
@@ -119,6 +127,8 @@ namespace Game.Cards.PlaygroundCards {
             cardName = cardData.name;
             backImage.material.mainTexture = cardData.BackImage.texture;
             frontImage.material.mainTexture = cardData.FrontImage.texture;
+            frontImageSprite = cardData.FrontImage;
+            backImageSprite = cardData.BackImage;
             _cardType = cardData.CardType;
             _cardDirection = cardData.CardDirection;
         }
@@ -398,6 +408,8 @@ namespace Game.Cards.PlaygroundCards {
                     : Color.red;
             _hoverMark.GetComponentInChildren<Image>().color = color;
             _hoverMark.SetActive(true);
+            
+            onCardHover?.Invoke(this);
         }
 
         [ClientCallback]
@@ -406,6 +418,7 @@ namespace Game.Cards.PlaygroundCards {
             if (_coveredBySolarShield) {
                 _hoverMark.GetComponentInChildren<Image>().color = Color.blue;
             }
+            onCardHover?.Invoke(null);
         }
 
         [Client]

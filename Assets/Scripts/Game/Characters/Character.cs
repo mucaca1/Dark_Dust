@@ -2,6 +2,7 @@
 using Game.Cards.PlayCards.Items;
 using Game.Cards.PlaygroundCards;
 using Game.Characters.Ability;
+using Game.UI;
 using Mirror;
 using Network;
 using UnityEngine;
@@ -339,6 +340,7 @@ namespace Game.Characters {
             // After click check action and move character
             if (cardAction == CardAction.Terrascope) {
                 // Show Card
+                FindObjectOfType<ShowCardActionUI>().Initialize(card);
                 Debug.Log("Show card");
             }
         }
