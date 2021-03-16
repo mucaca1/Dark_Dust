@@ -10,22 +10,19 @@ namespace Game.UI {
         [SerializeField] private TMP_Text _characterNameText = null;
         [SerializeField] private TMP_Text _collectedPartsText = null;
         [SerializeField] private TMP_Text _playerWaterText = null;
-        
+
         private Player _player = null;
 
         private void Start() {
             GameManager.Instance.onTakedItemsIncrease += HandleItemsUpdated;
             Character.onCharacterInitialized += HandleCreatedCharacter;
-        }
 
-        private void Update() {
-            if (_player == null) {
-                _player = NetworkClient.connection?.identity?.GetComponent<Player>();
-                if (_player != null) {
-                    _characterNameText.text = _player.GetComponent<Character>().CharacterName;
-                    _playerWaterText.text = $"Water: {_player.GetComponent<Character>().Water}/{_player.GetComponent<Character>().MAXWater}";
-                }
-            }
+
+            _player = NetworkClient.connection.identity.GetComponent<Player>();
+
+            _characterNameText.text = _player.GetComponent<Character>().CharacterName;
+            _playerWaterText.text =
+                $"Water: {_player.GetComponent<Character>().Water}/{_player.GetComponent<Character>().MAXWater}";
         }
 
         private void OnDestroy() {
@@ -42,7 +39,7 @@ namespace Game.UI {
             if (!character.GetComponent<Player>().hasAuthority) return;
             _playerWaterText.text = $"Water: {newValue}/{maxValue}";
         }
-        
+
         private void HandleCreatedCharacter(Character character) {
             if (!character.GetComponent<Player>().hasAuthority) return;
 

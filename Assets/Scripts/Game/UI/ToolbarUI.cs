@@ -29,33 +29,30 @@ namespace Game.UI {
         private PlayerController _controller = null;
 
         private void Start() {
+            _player = NetworkClient.connection.identity.GetComponent<Player>();
             walkButton.onClick.AddListener(WalkAction);
             excavateButton.onClick.AddListener(ExcavateAction);
             removeSandButton.onClick.AddListener(RemoveSandAction);
             pickUpAPartButton.onClick.AddListener(PickUpAPartAction);
             _specialActivityToggle.onValueChanged.AddListener(HandleSpecialAbilityToggle);
             GameManager.onAvaibleStepsChanged += HandleActionCounter;
-            
+
             _endControllingAnotherCharacterButton.gameObject.SetActive(false);
 
             _showItemCardsButton.onClick.AddListener(MakeActionWithCard);
-        }
 
-        private void Update() {
-            if (_player == null) {
-                _player = NetworkClient.connection?.identity?.GetComponent<Player>();
-                if (_player != null) {
-                    _player.onChangeActivePlayer += HandleSwapPlayer;
-                    _controller = _player.GetComponent<PlayerController>();
-                    _specialActivityToggle.gameObject.SetActive(!_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
-                    HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
-                    _player.AbilityManager.onControlOtherCharacter += HandleControlAnotherCharacter;
-                    _endControllingAnotherCharacterButton.onClick.AddListener(HandleEndOfControllingAnotherCharacter);
 
-                    _player.onItemCardsChanged += HandleItemCardCount;
-                    HandleItemCardCount(0);
-                }
-            }
+
+            _player.onChangeActivePlayer += HandleSwapPlayer;
+            _controller = _player.GetComponent<PlayerController>();
+            _specialActivityToggle.gameObject.SetActive(
+                !_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
+            HandleSwapPlayer(_player.IsYourTurn, GameManager.Instance.ActivePlayerName);
+            _player.AbilityManager.onControlOtherCharacter += HandleControlAnotherCharacter;
+            _endControllingAnotherCharacterButton.onClick.AddListener(HandleEndOfControllingAnotherCharacter);
+
+            _player.onItemCardsChanged += HandleItemCardCount;
+            HandleItemCardCount(0);
         }
 
         private void OnDestroy() {
@@ -128,8 +125,9 @@ namespace Game.UI {
 
             _endControllingAnotherCharacterButton.gameObject.SetActive(false);
             _specialActivityToggle.isOn = false;
-            _specialActivityToggle.gameObject.SetActive(!_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
-            
+            _specialActivityToggle.gameObject.SetActive(
+                !_player.AbilityManager.HasAuraAbility(_player.GetComponent<Character>()));
+
             excavateButton.interactable = true;
             removeSandButton.interactable = true;
             pickUpAPartButton.interactable = true;

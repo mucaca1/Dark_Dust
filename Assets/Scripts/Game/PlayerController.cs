@@ -1,4 +1,5 @@
-﻿using Game;
+﻿using System;
+using Game;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
 using UnityEngine;
@@ -18,11 +19,13 @@ namespace Network {
 
         public bool SpecialAction => _specialAction;
 
-        private void Start() {
+        public void Initialize() {
             _mainCamera = Camera.main;
         }
+        
 
         private void Update() {
+            if (_mainCamera == null) return;
             if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
             if (EventSystem.current.IsPointerOverGameObject()) {

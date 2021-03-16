@@ -66,12 +66,23 @@ namespace Game.Characters {
 
         public CardAction CardAbility {
             get => (CardAction) _cardAbilityIndex;
-            set { _cardAbility = value;
+            set {
+                _cardAbility = value;
                 _cardAbilityIndex = value.GetHashCode();
             }
         }
 
         public bool AutoUseAbility => _autoUseAbility;
+
+        [ClientCallback]
+        private void Awake() {
+            GameManager.onPlaygroundLoaded += StartGameRpc;
+        }
+
+        [ClientCallback]
+        private void OnDestroy() {
+            GameManager.onPlaygroundLoaded -= StartGameRpc;
+        }
 
         public override void OnStartClient() {
             GameManager.onPlaygroundLoaded += HandlePlaygroundLoaded;
@@ -81,28 +92,35 @@ namespace Game.Characters {
             GameManager.onPlaygroundLoaded -= HandlePlaygroundLoaded;
         }
 
-        private void Start() {
-            if (isServer) {
-                // Initialize character data
-                CharacterData data = GameManager.Instance.GetCharacterData();
-                _characterName = data.characterName;
-                _maxWater = data.maxWater;
-                _ability = data.ability;
-                _abilityCode = _ability.GetHashCode();
-                _abilityDescription = data.abilityDescription;
-                ServerAddWater(data.startWater);
-                SetStartPosition();
-                _initialized = true;
-            }
+        public override void OnStartServer() {
+            GameManager.onPlaygroundLoaded += SetStartPosition;
+        }
 
-            if (isClient) {
-                renderer.material.color = gameObject.GetComponent<Player>().PlayerColor;
-                CharacterInControl = this;
-                Character.onMoveCharacterWithExtraStep += HandleMoveCharacterWithExtraStep;
-            }
+        public override void OnStopServer() {
+            GameManager.onPlaygroundLoaded -= SetStartPosition;
+        }
+
+        [Client]
+        private void StartGameRpc() {
+            renderer.material.color = gameObject.GetComponent<Player>().PlayerColor;
+            _characterInControl = this;
+            onMoveCharacterWithExtraStep += HandleMoveCharacterWithExtraStep;
         }
 
         #region Server
+
+        [Server]
+        public void ServerStartGame() {
+            CharacterData data = GameManager.Instance.GetCharacterData();
+            _characterName = data.characterName;
+            _maxWater = data.maxWater;
+            _ability = data.ability;
+            _abilityCode = _ability.GetHashCode();
+            _abilityDescription = data.abilityDescription;
+            ServerAddWater(data.startWater);
+            _initialized = true;
+            _characterInControl = this;
+        }
 
         [Server]
         public void ServerAddWater(int water) {
@@ -175,7 +193,7 @@ namespace Game.Characters {
                         GetComponent<Player>().ActionDialogueCloseRpc();
                         return;
                     }
-                    
+
                     foreach (ItemCard itemCard in GetComponent<Player>().Cards) {
                         if (itemCard.Action == CardAbility) {
                             i = itemCard.CardId;
@@ -184,7 +202,7 @@ namespace Game.Characters {
                     }
 
                     GetComponent<Player>().RemoveCard(i);
-                    
+
                     _autoUseAbility = true;
                     CardAbility = CardAction.None;
 
@@ -196,7 +214,8 @@ namespace Game.Characters {
 
                 if (CardAbility == CardAction.DuneBlaster) {
                     ServerRemoveSand(card, 100);
-                } else if (CardAbility == CardAction.JetPack) {
+                }
+                else if (CardAbility == CardAction.JetPack) {
                     if (card.CanCharacterDoAction(action, this)) {
                         SetNewPosition(card);
                     }
@@ -204,14 +223,14 @@ namespace Game.Characters {
                 else {
                     DoCardActionRpc(CardAbility, card);
                 }
-                
+
                 foreach (ItemCard itemCard in GetComponent<Player>().Cards) {
                     if (itemCard.Action == CardAbility) {
                         i = itemCard.CardId;
                         break;
                     }
                 }
-                
+
                 _autoUseAbility = true;
                 CardAbility = CardAction.None;
 
@@ -295,10 +314,12 @@ namespace Game.Characters {
             if (specialAction && action == PlayerAction.WALK) {
                 GetComponent<Player>()
                     .ShowSpecialActionDialogue(_characterInControl.Ability, _characterInControl, Position, card);
-            } else if (!_autoUseAbility && CardAbility == CardAction.JetPack) {
+            }
+            else if (!_autoUseAbility && CardAbility == CardAction.JetPack) {
                 // Show Dialogue
                 GetComponent<Player>()
-                    .ShowSpecialActionDialogue(AbilityType.UseItem, _characterInControl, Position, card, CardAbility.GetHashCode());
+                    .ShowSpecialActionDialogue(AbilityType.UseItem, _characterInControl, Position, card,
+                        CardAbility.GetHashCode());
             }
             else {
                 if (_characterInControl.extraMoveSteps == 0) {

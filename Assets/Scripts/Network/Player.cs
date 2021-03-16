@@ -11,6 +11,7 @@ using UnityEngine;
 
 namespace Network {
     public class Player : NetworkBehaviour {
+        [SyncVar(hook = nameof(AuthorityHandlePartyOwnerStateUpdated))] private bool isPartOwner = false;
         [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
         [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
         [SerializeField] private SelectItemUI _selectItemPrefab = null;
@@ -22,7 +23,7 @@ namespace Network {
         [SyncVar(hook = nameof(HandleChangePlayer))]
         private bool isYourTurn = false;
 
-        [field: SyncVar] [SerializeField] public string _playerName = "PlayerName";
+        [field: SyncVar(hook = nameof(ClientHandleDisplayNameUpdated))] [SerializeField] public string _playerName = "PlayerName";
 
         [field: SyncVar] public Color PlayerColor { get; set; } = Color.black;
 
@@ -37,6 +38,11 @@ namespace Network {
         private AbilityManager _abilityManager = new AbilityManager();
 
         public AbilityManager AbilityManager => _abilityManager;
+
+        public bool IsPartOwner => isPartOwner;
+
+        public static event Action<bool> AuthorityOnPartyOwnerStateUpdated;
+        public static event Action ClientOnInfoUpdated;
 
         public bool IsYourTurn => isYourTurn;
 
@@ -53,8 +59,8 @@ namespace Network {
             set => _playerName = value;
         }
 
-        [ClientCallback]
-        private void Start() {
+        [Client]
+        public void StartGame() {
             GameManager.Instance.futureCards.Callback += HandleShowedCard;
             GameManager.onDustTurn += HandleDustTurn;
             _abilityManager.onDoAction += HandleOnDoAction;
@@ -67,9 +73,34 @@ namespace Network {
             _playerCards.Callback += HandleItemCardOperationFromServer;
 
             SelectItemUI.onItemActionSelect += HandleItemAction;
+            GetComponent<PlayerController>().Initialize();
+        }
+        
+        public override void OnStartServer() {
+            DontDestroyOnLoad(gameObject);
+        }
+        
+        public override void OnStartClient() {
+            if (NetworkServer.active) return;
+            ((DarkDustNetworkManager)NetworkManager.singleton).Players.Add(this);
+            DontDestroyOnLoad(gameObject);
+        }
+        
+        public override void OnStopClient() {
+            ClientOnInfoUpdated?.Invoke();
+            if (!isClientOnly) {
+                return;
+            }
+        
+            ((DarkDustNetworkManager)NetworkManager.singleton).Players.Remove(this);
         }
 
         #region Server
+        
+        [Server]
+        public void SetPartyOwner(bool val) {
+            isPartOwner = val;
+        }
 
         [Server]
         public void EndTurn() {
@@ -134,6 +165,13 @@ namespace Network {
         [Command]
         private void CmdSetCardAbility(CardAction itemCardAction) {
             GetComponent<Character>().CardAbility = itemCardAction;
+        }
+
+        [Command]
+        public void CmdStartGame() {
+            if (!isPartOwner) return;
+        
+            ((DarkDustNetworkManager)NetworkManager.singleton).StartGame();
         }
 
         #endregion
@@ -489,6 +527,20 @@ namespace Network {
                 GetComponent<Character>().CmdDoAction(PlayerAction.WALK, GetComponent<Character>().Position, true);
             }
         }
+        
+        [Client]
+        private void AuthorityHandlePartyOwnerStateUpdated(bool oldValue, bool newValue) {
+            if (!hasAuthority) return;
+        
+            AuthorityOnPartyOwnerStateUpdated?.Invoke(newValue);
+        }
+        
+                
+        [Client]
+        private void ClientHandleDisplayNameUpdated(string oldValue, string newName) {
+            ClientOnInfoUpdated?.Invoke();
+        }
+
 
         #endregion
     }

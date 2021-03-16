@@ -5,12 +5,9 @@ using System.Linq;
 using Game.Cards.PlayCards.Tornado;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
-using Game.Characters.Ability;
-using Game.UI;
 using Mirror;
 using Network;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
@@ -109,9 +106,11 @@ namespace Game {
                 GenerateNewPlayGround();
                 GenerateItemCards();
                 getTornadoNextCards += ServerGetTornadoCards;
+                onPlaygroundLoaded?.Invoke();
             }
 
             if (isClient) {
+                NetworkClient.connection.identity.GetComponent<Player>().StartGame();
                 LoadPlayground();
                 onPlaygroundLoaded?.Invoke();
             }
@@ -138,20 +137,21 @@ namespace Game {
         }
 
         #region Server
-        
-        
+
         [Server]
         private void GenerateItemCards() {
             List<int> seed = new List<int>();
-            // for (int i = 2; i < 14; i++) {
-                // seed.Add((int)(i / 2));
-            // }
-            // var shuffledcards = seed.OrderBy(a => Guid.NewGuid()).ToList();
-            
-            // foreach (int i in shuffledcards) {
-                // _itemsCards.Enqueue(i);
-            // }
-            _itemsCards.Enqueue(4);
+            for (int i = 2; i < 14; i++) {
+                seed.Add((int) (i / 2));
+            }
+
+            var shuffledcards = seed.OrderBy(a => Guid.NewGuid()).ToList();
+
+            foreach (int i in shuffledcards) {
+                _itemsCards.Enqueue(i);
+            }
+
+            // _itemsCards.Enqueue(4);
         }
 
         [Server]
@@ -332,7 +332,7 @@ namespace Game {
             _stepsRemaning = _maxSteps;
             _activePlayer.StartTurn();
             _activePlayerName = _activePlayer.PlayerName;
-            
+
             foreach (PlaygroundCard playgroundCard in _playgroundCards) {
                 playgroundCard.CoveredBySolarShield = false;
             }
@@ -452,7 +452,7 @@ namespace Game {
                 if (i == 2) break;
             }
         }
-        
+
         [Server]
         public int GetNextItemCard() {
             return _itemsCards.Dequeue();
