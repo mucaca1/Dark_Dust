@@ -196,6 +196,10 @@ namespace Game {
         public void StormTickUp() {
             ++_stormTickMarkValue;
             onStromTickMarkChanged?.Invoke(_stormTickMarkValue, _maxStormTick);
+            if (_stormTickMarkValue == _difficultyValues.Length) {
+                SetLoseReason("You loose because storm is strong...");
+                _isLose = true;
+            }
         }
 
         [Server]
