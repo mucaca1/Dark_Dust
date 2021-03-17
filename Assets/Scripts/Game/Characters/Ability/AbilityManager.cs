@@ -106,7 +106,7 @@ namespace Game.Characters.Ability {
 
                 case AbilityType.Meteorologist:
                     if (index == -1) {
-                        if (GameManager.Instance.ActualStormTickMark == 0) return;
+                        if (GameManager.Instance.TakingStormCards == 0) return;
                         onWeakenStorm?.Invoke();
                     }
                     else {

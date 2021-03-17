@@ -13,17 +13,20 @@ public class LobbyMenu : MonoBehaviour {
     [SerializeField] private GameObject lobbyUI = null;
     [SerializeField] private Button startGameButton = null;
     [SerializeField] private TMP_Text[] playerNameTexts = new TMP_Text[5];
+    [SerializeField] private TMP_Dropdown difficultyDropDown = null;
 
     private void Start() {
         DarkDustNetworkManager.ClientOnConnected += HandleClientOnConnected;
         Player.AuthorityOnPartyOwnerStateUpdated += AuthorityHandlePartyOwnerStateUpdated;
         Player.ClientOnInfoUpdated += ClientHandleInfoUpdated;
+        difficultyDropDown.onValueChanged.AddListener(HandleSelectDifficulty);
     }
 
     private void OnDestroy() {
         DarkDustNetworkManager.ClientOnConnected -= HandleClientOnConnected;
         Player.AuthorityOnPartyOwnerStateUpdated -= AuthorityHandlePartyOwnerStateUpdated;
         Player.ClientOnInfoUpdated -= ClientHandleInfoUpdated;
+        difficultyDropDown.onValueChanged.RemoveListener(HandleSelectDifficulty);
     }
 
     private void ClientHandleInfoUpdated() {
@@ -42,6 +45,7 @@ public class LobbyMenu : MonoBehaviour {
     
     private void AuthorityHandlePartyOwnerStateUpdated(bool value) {
         startGameButton.gameObject.SetActive(value);
+        difficultyDropDown.interactable = value;
     }
 
     public void StartGame() {
@@ -61,5 +65,9 @@ public class LobbyMenu : MonoBehaviour {
 
             SceneManager.LoadScene(0);
         }
+    }
+
+    private void HandleSelectDifficulty(int valueIndex) {
+        NetworkClient.connection.identity.GetComponent<Player>().CmdSetDifficulty(valueIndex);
     }
 }

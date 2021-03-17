@@ -11,11 +11,14 @@ namespace Network {
     public class DarkDustNetworkManager : NetworkManager {
         private List<Player> _players = new List<Player>();
         private bool isGameInProgress = false;
+        private int _difficulty = 0;
 
         public static event Action ClientOnConnected;
         public static event Action ClientOnDisconnected;
 
         public List<Player> Players => _players;
+
+        public int Difficulty => _difficulty;
 
         #region Server
 
@@ -69,6 +72,10 @@ namespace Network {
                     GameManager.Instance.RegisterPlayerToQueue(player);
                 }
             }
+        }
+
+        public void SetDifficulty(int difficulty) {
+            _difficulty = difficulty;
         }
 
         #endregion

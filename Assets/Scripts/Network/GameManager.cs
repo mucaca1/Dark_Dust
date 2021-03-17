@@ -12,10 +12,13 @@ using UnityEngine;
 
 namespace Game {
     public class GameManager : NetworkBehaviour {
-        [SyncVar(hook = nameof(HandleLoseGame))] private bool _isLose = false;
+        [SyncVar(hook = nameof(HandleLoseGame))]
+        private bool _isLose = false;
+
         [SyncVar] private string loseReason = "";
         [SerializeField] private GameObject loseScreen = null;
         [SerializeField] private TMP_Text reasonForLoseText = null;
+
         [Serializable]
         private class CardSet {
             public int count = 0;
@@ -57,9 +60,13 @@ namespace Game {
 
         [SyncVar] private int _maxTornadoValue = -1;
 
-        [SyncVar] private int _actualStormTickMark = 2;
-        [SyncVar] private int _stromTickMarkValue = 2;
+        [SyncVar] private int _maxStormTick = 0;
+        [SyncVar] private int _stormTickMarkValue = 0;
+        [SyncVar] private int _takingStormCards = 0;
+        [SyncVar] private int _takingStormCardsConstant = 0;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
+
+        private int[] _difficultyValues = null;
 
         public PlaygroundCard Tornado => _tornado;
 
@@ -69,11 +76,13 @@ namespace Game {
 
         public string ActivePlayerName => _activePlayerName;
 
-        public int ActualStormTickMark => _actualStormTickMark;
-        public int StormTickMarkValue => _stromTickMarkValue;
+        public int TakingStormCards => _takingStormCards;
+        public int StormTickMarkValue => _stormTickMarkValue;
+
+        public int TakingStormCardsConstant => _takingStormCardsConstant;
 
         public event Action<int> onTakedItemsIncrease;
-        public event Action<int> onStromTickMarkChanged;
+        public event Action<int, int> onStromTickMarkChanged;
         public event Action<int> onDustCardSet;
         public event Action<int> onTornadoCardChanged;
 
@@ -89,7 +98,7 @@ namespace Game {
         public static GameManager Instance {
             get { return _gameManager; }
         }
-        
+
         private void Awake() {
             if (_gameManager != null && _gameManager != this) {
                 Destroy(gameObject);
@@ -105,6 +114,19 @@ namespace Game {
                 PlaygroundCard.onRemoveSand += RemoveSandHandler;
                 _playgroundCardDatas = Resources.LoadAll<PlaygroundCardData>("");
 
+                foreach (Difficulty difficulty in Resources.LoadAll<Difficulty>("Difficulty")) {
+                    if (difficulty.players != ((DarkDustNetworkManager) NetworkManager.singleton).Players.Count + 1)
+                        continue;
+
+                    _difficultyValues = difficulty.dustPower;
+                    _maxStormTick = difficulty.dustPower.Length;
+                    _stormTickMarkValue = ((DarkDustNetworkManager) NetworkManager.singleton).Difficulty;
+                    break;
+                }
+
+                _takingStormCards = _difficultyValues[_stormTickMarkValue];
+                _takingStormCardsConstant = _difficultyValues[_stormTickMarkValue];
+                onStromTickMarkChanged?.Invoke(_stormTickMarkValue, _maxStormTick);
                 Debug.Log(_playgroundCardDatas.Length == 0
                     ? "No playground cards was found. Check Resources folder"
                     : "Playground cards was loaded successfully");
@@ -148,7 +170,7 @@ namespace Game {
         public void SetLoseReason(string reason) {
             loseReason = reason;
         }
-        
+
         [Server]
         public void SetIsLose(bool val) {
             _isLose = val;
@@ -172,8 +194,8 @@ namespace Game {
 
         [Server]
         public void StormTickUp() {
-            ++_stromTickMarkValue;
-            onStromTickMarkChanged?.Invoke(_stromTickMarkValue);
+            ++_stormTickMarkValue;
+            onStromTickMarkChanged?.Invoke(_stormTickMarkValue, _maxStormTick);
         }
 
         [Server]
@@ -182,6 +204,7 @@ namespace Game {
                 SetLoseReason("You loose because you put all sand marks and you dont have any more to put.");
                 _isLose = true;
             }
+
             --_sandStackReaming;
         }
 
@@ -347,7 +370,8 @@ namespace Game {
 
         [Server]
         private void StartNewTurn() {
-            _actualStormTickMark = _stromTickMarkValue;
+            _takingStormCards = _difficultyValues[_stormTickMarkValue];
+            _takingStormCardsConstant = _difficultyValues[_stormTickMarkValue];
             _activePlayer = _playerOrder.Dequeue();
             _stepsRemaning = _maxSteps;
             _activePlayer.StartTurn();
@@ -361,7 +385,7 @@ namespace Game {
         [Server]
         private IEnumerator DesertTurn() {
             Debug.Log("Desert is in command");
-            int pickUpCards = _actualStormTickMark;
+            int pickUpCards = _takingStormCards;
             for (int i = 0; i < pickUpCards; i++) {
                 if (_tornadoCards.Count == 0)
                     GenerateStormDeck();
@@ -372,7 +396,7 @@ namespace Game {
                     move.Steps = tornadoCard.steps;
                     move.Direction = tornadoCard.direction;
                 }
-                
+
                 card.GetComponent<TornadoCard>().DoAction();
                 Destroy(card);
                 yield return new WaitForSeconds(1);
@@ -461,7 +485,7 @@ namespace Game {
 
         [Server]
         public void ServerWeakStormCard() {
-            _actualStormTickMark = Mathf.Max(_actualStormTickMark - 1, 0);
+            _takingStormCards = Mathf.Max(_takingStormCards - 1, 0);
         }
 
         [Server]

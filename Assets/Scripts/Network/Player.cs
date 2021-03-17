@@ -173,6 +173,13 @@ namespace Network {
         
             ((DarkDustNetworkManager)NetworkManager.singleton).StartGame();
         }
+        
+        [Command]
+        public void CmdSetDifficulty(int difficulty) {
+            if (!isPartOwner) return;
+        
+            ((DarkDustNetworkManager)NetworkManager.singleton).SetDifficulty(difficulty);
+        }
 
         #endregion
 

@@ -21,12 +21,12 @@ namespace Game.UI {
         }
         
 
-        private void HandleStormValue(int value) {
-            _stormValueText.text = $"Storm tick: {value}";
+        private void HandleStormValue(int value, int maxValue) {
+            _stormValueText.text = $"Storm tick: {value}/{maxValue}";
         }
 
         private void HandleSandValue(int value) {
-            _sandMarkersText.text = $"Sand markers remaning: {value}";
+            _sandMarkersText.text = $"Sand markers remaining: {value}";
         }
 
         private void HandleTornadoCardValue(int value) {

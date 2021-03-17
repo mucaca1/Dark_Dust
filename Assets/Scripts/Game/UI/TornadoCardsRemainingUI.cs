@@ -11,7 +11,7 @@ namespace Game.UI {
         
 
         private void Update() {
-            int count = GameManager.Instance.StormTickMarkValue - GameManager.Instance.ActualStormTickMark;
+            int count = GameManager.Instance.TakingStormCardsConstant - GameManager.Instance.TakingStormCards;
             sandDustText.gameObject.SetActive(count != 0);
             if (count != 0) {
                 sandDustText.text = $"Dark dust take -{count} card";
