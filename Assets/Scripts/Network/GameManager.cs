@@ -20,6 +20,7 @@ namespace Game {
 
         [SyncVar] private string loseReason = "";
         [SerializeField] private GameObject loseScreen = null;
+        [SerializeField] private GameObject winScreen = null;
         [SerializeField] private TMP_Text reasonForLoseText = null;
 
         [Serializable]
@@ -612,7 +613,7 @@ namespace Game {
 
         [Client]
         private void HandleWinGame(bool oldValue, bool newValue) {
-            // todo win display
+            winScreen.SetActive(newValue);
         }
 
         #endregion

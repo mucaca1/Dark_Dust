@@ -541,6 +541,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3027841191003617932, guid: b14f0259e9328594fae24ccb24a50cfc, type: 3}
+      propertyPath: winScreen
+      value: 
+      objectReference: {fileID: 3982899620898500215}
+    - target: {fileID: 3027841191003617932, guid: b14f0259e9328594fae24ccb24a50cfc, type: 3}
       propertyPath: loseScreen
       value: 
       objectReference: {fileID: 3982899620898500214}
@@ -1113,5 +1117,10 @@ MonoBehaviour:
 --- !u!1 &3982899620898500214 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4772208987330186561, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
+  m_PrefabInstance: {fileID: 3982899620898500212}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3982899620898500215 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6475382829365563370, guid: f099cb9183fe34b44ac84c0f69ff8f30, type: 3}
   m_PrefabInstance: {fileID: 3982899620898500212}
   m_PrefabAsset: {fileID: 0}
