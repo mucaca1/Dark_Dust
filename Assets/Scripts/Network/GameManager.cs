@@ -15,6 +15,9 @@ namespace Game {
         [SyncVar(hook = nameof(HandleLoseGame))]
         private bool _isLose = false;
 
+        [SyncVar(hook = nameof(HandleWinGame))]
+        private bool _isWin = false;
+
         [SyncVar] private string loseReason = "";
         [SerializeField] private GameObject loseScreen = null;
         [SerializeField] private TMP_Text reasonForLoseText = null;
@@ -361,6 +364,14 @@ namespace Game {
         }
 
         [Server]
+        public bool AreAllItemsCollected() {
+            return IsItemTaked(PlaygroundCardType.Compass.GetHashCode()) &&
+                   IsItemTaked(PlaygroundCardType.Engine.GetHashCode()) &&
+                   IsItemTaked(PlaygroundCardType.Helm.GetHashCode()) &&
+                   IsItemTaked(PlaygroundCardType.Propeller.GetHashCode());
+        }
+
+        [Server]
         public void DoAction() {
             --_stepsRemaning;
             if (_stepsRemaning != 0) return;
@@ -502,6 +513,11 @@ namespace Game {
         }
 
         [Server]
+        public void WinGame() {
+            _isWin = true;
+        }
+
+        [Server]
         public int GetNextItemCard() {
             return _itemsCards.Dequeue();
         }
@@ -592,6 +608,11 @@ namespace Game {
         private void HandleLoseGame(bool oldValue, bool newValue) {
             reasonForLoseText.text = loseReason;
             loseScreen.SetActive(newValue);
+        }
+
+        [Client]
+        private void HandleWinGame(bool oldValue, bool newValue) {
+            // todo win display
         }
 
         #endregion

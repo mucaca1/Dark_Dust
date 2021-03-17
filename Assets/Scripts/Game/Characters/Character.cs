@@ -153,6 +153,12 @@ namespace Game.Characters {
             _position = card;
             _positionIndex = _position.GetIndexPosition();
             transform.position = _position.GetNextPlayerPosition(this);
+            
+            if (card.CardType != PlaygroundCardType.Exit) return;
+            if (card.IsDust()) return;
+            if (!GameManager.Instance.AreAllItemsCollected()) return;
+            if (card.GetCharacters().Count != ((DarkDustNetworkManager)NetworkManager.singleton).Players.Count) return;
+            GameManager.Instance.WinGame();
         }
 
         [Server]
