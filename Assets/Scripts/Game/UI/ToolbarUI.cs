@@ -140,5 +140,14 @@ namespace Game.UI {
         private void MakeActionWithCard() {
             _player.ShowSpecialCardDialogue();
         }
+        
+        public void LeaveGame() {
+            if (NetworkServer.active && NetworkClient.isConnected) {
+                NetworkManager.singleton.StopHost();
+            }
+            else {
+                NetworkManager.singleton.StopClient();
+            }
+        }
     }
 }
