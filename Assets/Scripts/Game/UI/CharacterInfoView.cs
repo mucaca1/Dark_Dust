@@ -13,11 +13,11 @@ namespace Game.UI {
 
         private Player _player = null;
 
-        private void Update() {
-            if (_player == null) {
-                _player = NetworkClient.connection?.identity?.GetComponent<Player>();
-            }
+        private void Start() {
+            _player = NetworkClient.connection.identity.GetComponent<Player>();
+        }
 
+        private void Update() {
             if (_player != null) {
                 Character character = _player.GetComponent<Character>();
                 characterName.text = character.CharacterName;

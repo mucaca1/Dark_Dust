@@ -5,6 +5,7 @@ using System.Linq;
 using Game.Cards.PlayCards.Tornado;
 using Game.Cards.PlaygroundCards;
 using Game.Characters;
+using Game.UI;
 using Mirror;
 using Network;
 using TMPro;
@@ -17,8 +18,12 @@ namespace Game {
 
         [SyncVar(hook = nameof(HandleWinGame))]
         private bool _isWin = false;
+        
+        [SyncVar(hook = nameof(InitializeGame))]
+        private bool _isInitialized = false;
 
-        [SyncVar] private string loseReason = "";
+
+        private string loseReason = "";
         [SerializeField] private GameObject loseScreen = null;
         [SerializeField] private GameObject winScreen = null;
         [SerializeField] private TMP_Text reasonForLoseText = null;
@@ -51,6 +56,7 @@ namespace Game {
         [SerializeField] private CardSet[] _tornadoCardsPrefab = new CardSet[0];
         private Queue<int> _itemsCards = new Queue<int>();
 
+        [SyncVar(hook = nameof(HandleTornadoCardCount))] private int _tornadoCardsCount = 0;
         private Queue<TornadoDeckCardData> _tornadoCards = new Queue<TornadoDeckCardData>();
 
         private List<PlaygroundCard> _playgroundCards = new List<PlaygroundCard>();
@@ -64,10 +70,10 @@ namespace Game {
 
         [SyncVar] private int _maxTornadoValue = -1;
 
-        [SyncVar] private int _maxStormTick = 0;
-        [SyncVar] private int _stormTickMarkValue = 0;
-        [SyncVar] private int _takingStormCards = 0;
-        [SyncVar] private int _takingStormCardsConstant = 0;
+        [SyncVar(hook = nameof(HandleTornadoCardInfo))] private int _maxStormTick = 0;
+        [SyncVar(hook = nameof(HandleTornadoCardInfo))] private int _stormTickMarkValue = 0;
+        [SyncVar(hook = nameof(HandleTornadoCardInfo))] private int _takingStormCards = 0;
+        [SyncVar(hook = nameof(HandleTornadoCardInfo))] private int _takingStormCardsConstant = 0;
         private Queue<CharacterData> _charactersData = new Queue<CharacterData>();
 
         private int[] _difficultyValues = null;
@@ -79,6 +85,7 @@ namespace Game {
         public Player ActivePlayer => _activePlayer;
 
         public string ActivePlayerName => _activePlayerName;
+        public bool IsInitialized => _isInitialized;
 
         public int TakingStormCards => _takingStormCards;
         public int StormTickMarkValue => _stormTickMarkValue;
@@ -86,7 +93,7 @@ namespace Game {
         public int TakingStormCardsConstant => _takingStormCardsConstant;
 
         public event Action<int> onTakedItemsIncrease;
-        public event Action<int, int> onStromTickMarkChanged;
+        public event Action<int, int, int> onStromTickMarkChanged;
         public event Action<int> onDustCardSet;
         public event Action<int> onTornadoCardChanged;
 
@@ -130,7 +137,6 @@ namespace Game {
 
                 _takingStormCards = _difficultyValues[_stormTickMarkValue];
                 _takingStormCardsConstant = _difficultyValues[_stormTickMarkValue];
-                onStromTickMarkChanged?.Invoke(_stormTickMarkValue, _maxStormTick);
                 Debug.Log(_playgroundCardDatas.Length == 0
                     ? "No playground cards was found. Check Resources folder"
                     : "Playground cards was loaded successfully");
@@ -139,6 +145,9 @@ namespace Game {
                 GenerateItemCards();
                 getTornadoNextCards += ServerGetTornadoCards;
                 onPlaygroundLoaded?.Invoke();
+
+                _isInitialized = true;
+                NetworkClient.connection.identity.GetComponent<Player>().StartGameInitializeCallback();
             }
 
             if (isClient) {
@@ -199,10 +208,13 @@ namespace Game {
         [Server]
         public void StormTickUp() {
             ++_stormTickMarkValue;
-            onStromTickMarkChanged?.Invoke(_stormTickMarkValue, _maxStormTick);
+
             if (_stormTickMarkValue == _difficultyValues.Length) {
                 SetLoseReason("You loose because storm is strong...");
                 _isLose = true;
+            }
+            else {
+                _takingStormCards = _difficultyValues[_stormTickMarkValue];
             }
         }
 
@@ -343,6 +355,7 @@ namespace Game {
                 _tornadoCards.Enqueue(card);
             }
 
+            _tornadoCardsCount = _tornadoCards.Count;
             Debug.Log("Tornado cards has been generated and sorted.");
         }
 
@@ -415,6 +428,7 @@ namespace Game {
 
                 card.GetComponent<TornadoCard>().DoAction();
                 Destroy(card);
+                _tornadoCardsCount = _tornadoCards.Count;
                 yield return new WaitForSeconds(1);
             }
 
@@ -614,6 +628,27 @@ namespace Game {
         [Client]
         private void HandleWinGame(bool oldValue, bool newValue) {
             winScreen.SetActive(newValue);
+        }
+
+        [Client]
+        private void HandleTornadoCardInfo(int oldValue, int newValue) {
+            onStromTickMarkChanged?.Invoke(_stormTickMarkValue + 1, _maxStormTick, _takingStormCards);
+            onDustCardSet?.Invoke(_sandStackReaming);
+            onTornadoCardChanged?.Invoke(_tornadoCardsCount);
+        }
+
+        [Client]
+        public void InitializeGame(bool oldValue, bool newValue) {
+            if (newValue) {
+                onStromTickMarkChanged?.Invoke(_stormTickMarkValue + 1, _maxStormTick, _takingStormCards);
+                onDustCardSet?.Invoke(_sandStackReaming);
+                onTornadoCardChanged?.Invoke(_tornadoCardsCount);
+            }
+        }
+
+        [Client]
+        private void HandleTornadoCardCount(int oldValue, int newActualCount) {
+            onTornadoCardChanged?.Invoke(newActualCount);
         }
 
         #endregion

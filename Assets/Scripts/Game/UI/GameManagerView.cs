@@ -16,7 +16,7 @@ namespace Game.UI {
         private void Start() {
             GameManager.Instance.onTakedItemsIncrease += HandleItemsUpdated;
             Character.onCharacterInitialized += HandleCreatedCharacter;
-
+            Character.onWaterValueChanged += HandlePlayerWater;
 
             _player = NetworkClient.connection.identity.GetComponent<Player>();
 
@@ -44,7 +44,6 @@ namespace Game.UI {
             if (!character.GetComponent<Player>().hasAuthority) return;
 
             _characterNameText.text = character.CharacterName;
-            Character.onWaterValueChanged += HandlePlayerWater;
         }
     }
 }

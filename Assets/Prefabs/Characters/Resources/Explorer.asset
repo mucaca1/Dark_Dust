@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Explorer
   m_EditorClassIdentifier: 
   characterName: Explorer
-  startWater: 2
+  startWater: 5
   maxWater: 5
   ability: 2
   abilityDescription: The Explorer can move, remove sand, and may use Dune Blasters

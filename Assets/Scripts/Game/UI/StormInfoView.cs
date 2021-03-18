@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Game.UI {
     public class StormInfoView : MonoBehaviour {
         [SerializeField] private TMP_Text _stormValueText = null;
+        [SerializeField] private TMP_Text _stormCardCountText = null;
         [SerializeField] private TMP_Text _sandMarkersText = null;
         [SerializeField] private TMP_Text _tornadoCardText = null;
         
@@ -21,8 +22,9 @@ namespace Game.UI {
         }
         
 
-        private void HandleStormValue(int value, int maxValue) {
+        public void HandleStormValue(int value, int maxValue, int cardCount) {
             _stormValueText.text = $"Storm tick: {value}/{maxValue}";
+            _stormCardCountText.text = $"Cards in desert turn: {cardCount}";
         }
 
         private void HandleSandValue(int value) {

@@ -29,6 +29,7 @@ namespace Game.UI {
         private PlayerController _controller = null;
 
         private void Start() {
+            Character.onCharacterInitialized += HandleCharacterInitialize;
             _player = NetworkClient.connection.identity.GetComponent<Player>();
             walkButton.onClick.AddListener(WalkAction);
             excavateButton.onClick.AddListener(ExcavateAction);
@@ -56,6 +57,7 @@ namespace Game.UI {
         }
 
         private void OnDestroy() {
+            Character.onCharacterInitialized -= HandleCharacterInitialize;
             _player.onChangeActivePlayer -= HandleSwapPlayer;
             GameManager.onAvaibleStepsChanged -= HandleActionCounter;
 
@@ -147,6 +149,13 @@ namespace Game.UI {
             }
             else {
                 NetworkManager.singleton.StopClient();
+            }
+        }
+
+        private void HandleCharacterInitialize(Character character) {
+            if (character.hasAuthority) {
+                _specialActivityToggle.gameObject.SetActive(
+                    !_player.AbilityManager.HasAuraAbility(character));
             }
         }
     }

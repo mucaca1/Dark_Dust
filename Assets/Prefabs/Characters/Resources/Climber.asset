@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Climber
   m_EditorClassIdentifier: 
   characterName: Climber
-  startWater: 2
+  startWater: 4
   maxWater: 4
   ability: 1
   abilityDescription: "The Climber can move to blocked tiles (tiles with 2 or more

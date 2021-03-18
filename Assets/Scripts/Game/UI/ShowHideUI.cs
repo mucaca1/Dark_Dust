@@ -13,6 +13,7 @@ namespace Game.UI {
 
         
         public void OnPointerClick(PointerEventData eventData) {
+            GameManager.Instance.InitializeGame(false, true);
             _isShowed = !_isShowed;
             _barToShow.SetActive(_isShowed);
         }

@@ -11,6 +11,8 @@ using UnityEngine;
 
 namespace Network {
     public class Player : NetworkBehaviour {
+        [SyncVar(hook = nameof(HandleStartGame))]
+        private bool _startGame = false;
         [SyncVar(hook = nameof(AuthorityHandlePartyOwnerStateUpdated))] private bool isPartOwner = false;
         [SerializeField] private SpecialAbilityActionUI _specialActionMenuPrefab = null;
         [SerializeField] private SelectPlayerUI _selectPlayerPrefab = null;
@@ -96,6 +98,11 @@ namespace Network {
         }
 
         #region Server
+
+        [Server]
+        public void StartGameInitializeCallback() {
+            _startGame = true;
+        }
         
         [Server]
         public void SetPartyOwner(bool val) {
@@ -546,6 +553,11 @@ namespace Network {
         [Client]
         private void ClientHandleDisplayNameUpdated(string oldValue, string newName) {
             ClientOnInfoUpdated?.Invoke();
+        }
+
+        [Client]
+        private void HandleStartGame(bool oldValue, bool newValue) {
+            GameManager.Instance.InitializeGame(oldValue, newValue);
         }
 
 
